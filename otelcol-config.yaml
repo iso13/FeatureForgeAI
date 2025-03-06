@@ -1,0 +1,59 @@
+# OpenTelemetry Collector Configuration
+# This configuration sets up the collector to receive telemetry data and forward it to Jaeger.
+
+extensions:
+  health_check: {}
+  pprof:
+    endpoint: 0.0.0.0:1777
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: "jaeger:4317"  # ✅ Corrected to OTLP gRPC
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:9464"
+
+  debug:
+    verbosity: detailed  # ✅ Logs debug details
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, debug]  # ✅ Uses OTLP instead of Jaeger
+
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [batch]
+      exporters: [prometheus, debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+
+  extensions: [health_check, pprof, zpages]

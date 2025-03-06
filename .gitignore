@@ -18,6 +18,7 @@ src/support/apiKey
 
 build/
 
-src/**/*.js
 
-src/**/*.map
+**/*.js
+**/*.js.map
+**/*.d.ts

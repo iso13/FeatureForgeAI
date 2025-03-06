@@ -10,7 +10,7 @@ Feature: Performance Test
     Given I perform a load test on the "/posts" endpoint using the "GET" method
     And the test runs with 2 virtual users for a duration of 5 seconds
     Then the test should complete successfully
-    And the average response time should be below 70ms
+    And the average response time should be below 10ms
     And the success rate should be 100%
 
   @stressTest @wip

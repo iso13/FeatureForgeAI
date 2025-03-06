@@ -1,25 +1,48 @@
-import { IWorldOptions, World, ITestCaseHookParameter } from '@cucumber/cucumber';
-import { BrowserContext, Page } from '@playwright/test';
+import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
+import { Browser, BrowserContext, Page, chromium } from 'playwright';
+import { Span } from '@opentelemetry/api';
 
-// Extend IWorldOptions to include 'pickle'
-interface CustomWorldOptions extends IWorldOptions {
-    pickle: ITestCaseHookParameter['pickle'];
+export interface CustomWorld extends World {
+  browser?: Browser;
+  context?: BrowserContext;
+  page?: Page;
+  testSpan?: Span;
+  stepSpan?: Span;
+  scenarioName: string;
+  featureName: string; // Added property for feature name
+  pickle: any;
+  a11yResults?: any; // Using 'any' type for accessibility results
+  launchBrowser(): Promise<void>;
 }
 
-export class CustomWorld extends World {
-    page!: Page;
-    context!: BrowserContext;
-    scenarioName!: string;
-    pickle!: ITestCaseHookParameter['pickle'];
+class PlaywrightWorld extends World implements CustomWorld {
+  browser?: Browser;
+  context?: BrowserContext;
+  page?: Page;
+  testSpan?: Span;
+  stepSpan?: Span;
+  scenarioName: string;
+  featureName: string; // Added property
+  pickle: any;
+  a11yResults?: any;
+  
+  constructor(options: IWorldOptions) {
+    super(options);
+    this.scenarioName = '';
+    this.featureName = '';
+  }
 
-    constructor(options: CustomWorldOptions) {
-        super(options);
-        this.pickle = options.pickle;
-        this.scenarioName = this.pickle?.name ?? 'Unknown Scenario';
+  async launchBrowser(): Promise<void> {
+    try {
+      this.browser = await chromium.launch({ headless: true });
+      this.context = await this.browser.newContext();
+      this.page = await this.context.newPage();
+      console.log('✅ Browser launched successfully, page created');
+    } catch (error) {
+      console.error('❌ Failed to launch browser:', error);
+      throw error;
     }
-
-    // Log current scenario
-    logScenario(): void {
-        console.log(`🎬 Running scenario: ${this.scenarioName}`);
-    }
+  }
 }
+
+setWorldConstructor(PlaywrightWorld);
