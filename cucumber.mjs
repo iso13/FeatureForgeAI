@@ -1,11 +1,15 @@
+import 'ts-node/register';
+
 import isCI from "is-ci";
 
 const config = {
     paths: [process.env.FEATURE_PATH || 'src/features/**/*.feature'],
     requireModule: ['ts-node/register'],
     require: [
-        process.env.STEP_PATH || 'src/steps/**/*.steps.ts',
-        'src/support/*.ts',
+        'src/support/tracer.ts',      // Load tracer utility first
+        'src/support/world.ts',       // Then world
+        'src/support/hooks.ts',       // Then hooks
+        process.env.STEP_PATH || 'src/steps/**/*.steps.ts'
     ],
     strict: true,
     format: [

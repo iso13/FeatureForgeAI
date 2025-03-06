@@ -1,79 +1,76 @@
-// a11y.steps.ts
 import { Given, When, Then } from '@cucumber/cucumber';
-import { Page } from 'playwright';
-import { AxeResults, Result } from 'axe-core';
-import { createHtmlReport } from 'axe-html-reporter';
-import { writeFileSync } from 'fs';
-import fs from 'fs-extra'; // Ensure directory exists
+import { CustomWorld } from '../support/world';
+import { AxeBuilder } from '@axe-core/playwright';
+import { expect } from '@playwright/test';
 
-// Declare the axe type in the global window object
-declare global {
-  interface Window {
-    axe: {
-      run: () => Promise<AxeResults>;
-    };
+Given('I go to the following {string}', async function(this: CustomWorld, url: string) {
+  console.log(`🔍 Navigating to: ${url}`);
+  
+  if (!this.page) {
+    console.error('❌ Page object is undefined in step definition');
+    throw new Error('Page object is not available. Check browser initialization in hooks.');
   }
-}
-
-// Function to inject the Axe accessibility testing library into the webpage
-async function injectAxe(page: Page) {
-  await page.addScriptTag({
-    path: require.resolve('axe-core/axe.min.js'),
-  });
-}
-
-// Function to run the Axe accessibility check and return the results
-async function checka11y(page: Page): Promise<AxeResults> {
-  return await page.evaluate(async () => {
-    return await window.axe.run(); // Use the declared window.axe type
-  });
-}
-
-
-Given('I go to the following {string}', async function (url: string) {
-  await this.page.goto(url);
+  
+  try {
+    await this.page.goto(url, { waitUntil: 'networkidle' });
+    console.log(`✅ Successfully navigated to: ${url}`);
+  } catch (error) {
+    console.error(`❌ Error navigating to ${url}:`, error);
+    throw error;
+  }
 });
 
-// Given step: Navigate to a specific accessible website
-Given('I go to a site that is accessible', async function () {
-  await this.page.goto('https://www.a11yproject.com/');
-});
-
-// When step: Inject Axe and prepare for accessibility checks
-When('I run the a11y check', async function () {
-  await injectAxe(this.page);
-});
-
-// Then step: Run accessibility check and handle/report violations
-Then('I should not see any violations', async function () {
-  const results: AxeResults = await checka11y(this.page);
-
-  // Ensure the reports/a11y directory exists
-  const reportPath = 'reports/a11y/a11y-report.html';
-  fs.ensureDirSync('reports/a11y');
-
-  // Generate the HTML report inside the correct directory
-  const reportHtml = createHtmlReport({
-    results,
-    options: {
-      projectKey: 'Accessibility Testing',
-    },
-  });
-
-  // Write the report to the correct path
-  writeFileSync(reportPath, reportHtml);
-  console.log(`✅ Accessibility report saved to: ${reportPath}`);
-
-  // Handle violations
-  if (results.violations.length > 0) {
-    const seriousViolations: Result[] = results.violations.filter(
-      (v) => v.impact === 'serious'
-    );
-
-    if (seriousViolations.length > 0) {
-      throw new Error(
-        `❌ A11y issues found: ${JSON.stringify(seriousViolations, null, 2)}`
-      );
+When('I run the a11y check', async function(this: CustomWorld) {
+  console.log('🔍 Running accessibility check');
+  
+  if (!this.page) {
+    console.error('❌ Page object is undefined in a11y check');
+    throw new Error('Page object is not available for accessibility testing');
+  }
+  
+  try {
+    // Use a type assertion to work around the compatibility issue
+    const accessibilityScanResults = await new AxeBuilder({ page: this.page as any })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    
+    // Store the results in the world object for later steps
+    this.a11yResults = accessibilityScanResults;
+    console.log(`✅ Accessibility scan completed with ${accessibilityScanResults.violations.length} violations`);
+    
+    // Log a summary of violations if any exist
+    if (accessibilityScanResults.violations.length > 0) {
+      console.log('📊 Accessibility violations summary:');
+      accessibilityScanResults.violations.forEach((violation, index) => {
+        console.log(`   ${index + 1}. ${violation.id}: ${violation.description} (Impact: ${violation.impact})`);
+      });
     }
+  } catch (error) {
+    console.error('❌ Error running accessibility check:', error);
+    throw error;
+  }
+});
+
+Then('I should not see any violations', function(this: CustomWorld) {
+  console.log('🔍 Checking for accessibility violations');
+  
+  if (!this.a11yResults) {
+    console.error('❌ No accessibility results found');
+    throw new Error('No accessibility scan results available');
+  }
+  
+  try {
+    // Get the number of violations
+    const violationCount = this.a11yResults.violations.length;
+    console.log(`📊 Found ${violationCount} accessibility violations`);
+    
+    // Assert that there are no violations
+    expect(violationCount, 
+      `Expected no accessibility violations but found ${violationCount}`).toBe(0);
+    
+    console.log('✅ Accessibility check passed - no violations found');
+  } catch (error) {
+    console.error('❌ Accessibility test failed:', error);
+    throw error;
   }
 });

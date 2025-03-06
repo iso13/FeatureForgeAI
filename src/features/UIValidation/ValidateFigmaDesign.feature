@@ -1,4 +1,4 @@
-@validateFigmaDesign
+@validateFigmaDesign @wip
 Feature: Validate Figma Design
     As a UI engineer
     I want to ensure that the web page matches the Figma design
