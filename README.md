@@ -206,3 +206,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Cucumber Documentation](https://cucumber.io/docs/guides/10-minute-tutorial/)
 - [Playwright Documentation](https://playwright.dev/docs/intro)
 
+## 📄 License
+
+This project is dual-licensed:
+
+- **Non-commercial use:** [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+- **Commercial use:** [Contact David Tran](mailto:davettran13@gmail.com) to obtain a commercial license.
