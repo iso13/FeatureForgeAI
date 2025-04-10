@@ -17,3 +17,7 @@ src/support/apiKey
 .env
 
 .DS_Store
+
+/dist
+
+.js
