@@ -1,7 +1,21 @@
-Copyright © 2025 David Tran
+# Commercial License
 
-All rights reserved.
+If you are using `cucumber-playwright` or any derivative works in a **commercial project**, you are required to obtain a commercial license.
 
-This software and associated documentation files may not be copied, modified, distributed, or used in any form without the express written permission of the copyright holder.
+## What's considered commercial use?
+- Using it as part of a paid SaaS product
+- Integrating into a company's internal tools
+- Packaging it as part of a service offering
 
-Unauthorized use is strictly prohibited and may be subject to legal action.
+## How to request a license
+Please contact:
+
+**David Tran**  
+📧 davettran13@gmail.com  
+
+Include:
+- Your company name
+- Intended use case
+- Number of engineers using the framework
+
+We’ll follow up with a tailored license plan.
