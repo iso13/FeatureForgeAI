@@ -1,12 +1,18 @@
-import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
+// src/support/world.ts
+import { IWorldOptions, setWorldConstructor, World } from '@cucumber/cucumber';
 import { Page } from 'playwright';
+import { Span } from '@opentelemetry/api';
 
 export class CustomWorld extends World {
-  page: Page | undefined;
+  // your page handle
+  page?: Page;
 
-  constructor(options: IWorldOptions) { // Using IWorldOptions for the options type
+  // will hold the span for each scenario
+  currentSpan?: Span;
+
+  constructor(options: IWorldOptions) {
+    // World constructor wires up `attach` and `parameters`
     super(options);
-    this.page = undefined;
   }
 }
 

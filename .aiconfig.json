@@ -1,0 +1,31 @@
+{
+    "stepStyles": {
+      "patterns": [
+        {
+          "from": "When I go to the \"(.*?)\" page", 
+          "to": "Given the \"$1\" page is displayed"
+        },
+        {
+          "from": "And I fill in the \"(.*?)\" with \"(.*?)\"", 
+          "to": "When the user provides \"$2\" for \"$1\""
+        },
+        {
+          "from": "And I click on the \"(.*?)\" button", 
+          "to": "When the user submits the \"$1\" action"
+        },
+        {
+          "from": "Then I should see a confirmation message \"(.*?)\"", 
+          "to": "Then a confirmation message \"$1\" should be displayed"
+        },
+        {
+          "from": "Then I should see an error message \"(.*?)\"", 
+          "to": "Then an error message \"$1\" should be displayed"
+        }
+      ]
+    },
+    "aiSettings": {
+      "model": "gpt-4",
+      "temperature": 0.3,
+      "maxTokens": 2000
+    }
+  }

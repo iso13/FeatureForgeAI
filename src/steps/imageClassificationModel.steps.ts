@@ -51,12 +51,12 @@ async function predictImageLabel(
 }
 
 // Load the pre-trained image classification model
-Given('a pre-trained image classification model for identifying cats and dogs is loaded', async () => {
+Given('a pre-trained image classification model for cats and dogs is loaded', async () => {
   model = await loadImageClassificationModel();
 });
 
 // Input a set of known images and make predictions
-When('I input a set of images containing cats and dogs', async () => {
+When('I input a set of labeled images containing cats and dogs', async () => {
   predictions = [];
   for (const { image } of EXPECTED_LABELS) {
     const imagePath = path.join(KNOWN_IMAGES_DIR, image);
@@ -67,7 +67,7 @@ When('I input a set of images containing cats and dogs', async () => {
 
 // Check if the predicted labels match the expected labels with a certain accuracy
 Then(
-  'each image should be correctly labeled as {string} or {string} with at least {int}% accuracy',
+  'each image should be labeled as {string} or {string} with at least {int}% accuracy',
   (label1: string, label2: string, accuracyThreshold: number) => {
     let correctPredictions = 0;
     for (const { image, label } of predictions) {

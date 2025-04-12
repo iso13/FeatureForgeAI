@@ -1,16 +1,15 @@
-@performanceTest
-Feature: Performance Test
-  As an Engineer
-  I want to be able run performnace test
-  So I can validate the performance of the application
+@validateApplicationPerformance
+Feature: Validate Application Performance
+  As a Performance Engineer
+  I want to run automated load tests against API endpoints
+  So I can ensure the application meets response time and success rate targets
 
   #Leverages Grafana k6
-
   Scenario: Perform load test on GET /posts endpoint
-    Given I perform a load test on the "/posts" endpoint using the "GET" method
-    And the test runs with 2 virtual users for a duration of 5 seconds
-    Then the test should complete successfully
-    And the average response time should be below 70ms
+    Given I initiate a load test on the "/posts" endpoint using the "GET" method
+    When the test is configured to run with 2 virtual users for 5 seconds
+    Then the test should complete without errors
+    And the average response time should be less than 70ms
     And the success rate should be 100%
 
   @stressTest @wip

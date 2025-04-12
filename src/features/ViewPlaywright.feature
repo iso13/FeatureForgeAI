@@ -1,4 +1,4 @@
-@ViewPlaywright
+@viewPlaywright
 Feature: View Playwright
   As a user
   I want to view the Playwright website

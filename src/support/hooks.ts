@@ -1,44 +1,53 @@
-// hooks.ts
-import { After, AfterAll, Before, BeforeAll, setDefaultTimeout, Status } from '@cucumber/cucumber';
+// src/support/hooks.ts
+import {
+  BeforeAll,
+  Before,
+  After,
+  AfterAll,
+  setDefaultTimeout,
+  Status,
+} from '@cucumber/cucumber';
+import { context, trace, SpanStatusCode } from '@opentelemetry/api';
+import { tracer } from './telemetry';
 import { fixture } from './pageFixture';
 import { CustomWorld } from './world';
 
-setDefaultTimeout(10 * 1000); // Set the default timeout for steps to 10 seconds
+setDefaultTimeout(10 * 1000);
 
-// BeforeAll hook: Launch the browser once before any tests run
-BeforeAll(async function () {
-  await fixture.initialize(); // Initialize browser only once before all tests
+let suiteCtx = context.active();
+
+BeforeAll(async () => {
+  suiteCtx = trace.setSpan(context.active(), tracer.startSpan('Test Suite'));
+  await fixture.initialize();
 });
 
-// Before hook: Set up a new context and page for each scenario to ensure test isolation
-Before(async function (this: CustomWorld) {
-  await fixture.initialize(); // Re-use existing browser, create a new context and page
-  this.page = fixture.page; // Assign the page to the Cucumber world for scenario-specific access
+Before(async function (this: CustomWorld, { pickle }) {
+  const span = tracer.startSpan(`Scenario: ${pickle.name}`, {}, suiteCtx);
+  this.currentSpan = span;
+  suiteCtx = trace.setSpan(suiteCtx, span);
+  await fixture.initialize();
+  this.page = fixture.page!;
 });
 
-// After hook: Take a screenshot if a scenario fails, then close the context to ensure isolation
-After(async function ({ pickle, result }) {
-  if (result?.status === Status.FAILED && fixture.page) {
-    try {
-      const img = await fixture.page.screenshot({
-        path: `./reports/screenshots/${pickle.name}.png`,
-        type: 'png',
-      });
-      this.attach(img, 'image/png'); // Attach the screenshot to the Cucumber report
-    } catch (error) {
-      console.error('Error taking screenshot:', error);
-    }
+After(async function (this: CustomWorld, { result }) {
+  if (this.currentSpan) {
+    this.currentSpan.setStatus({
+      code:
+        result?.status === Status.PASSED
+          ? SpanStatusCode.OK
+          : SpanStatusCode.ERROR,
+    });
+    this.currentSpan.end();
   }
-
-  // Close the context and reset page after each scenario to avoid test interference
   if (fixture.context) {
-    await fixture.context.close(); // Close the context to release resources
-    fixture.context = undefined; // Reset context to ensure a new one for the next scenario
-    fixture.page = undefined; // Reset page reference to ensure a fresh page is used
+    await fixture.context.close();
+    fixture.context = undefined;
+    fixture.page = undefined;
   }
 });
 
-// AfterAll hook: Close the browser after all tests have completed to clean up resources
-AfterAll(async function () {
-  await fixture.close(); // Final cleanup to ensure no open browsers remain
+AfterAll(async () => {
+  const suiteSpan = trace.getSpan(suiteCtx);
+  suiteSpan?.end();
+  await fixture.close();
 });

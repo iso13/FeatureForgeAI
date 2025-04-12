@@ -1,10 +1,12 @@
-@VerifyTrainedModel
-Feature: Verify Trained Model
-  As an Engineer
-  I need to be able to verify the prediction of a trained model
-  So I can validate the model's accuracy
+@verifyTrainedModel
+Feature: Verify prediction of a trained model
+  As a Machine Learning Engineer
+  I want to verify the output of a trained regression model
+  So I can ensure the model predicts values within an acceptable error margin
 
-  Scenario: Train and test a simple TensorFlow model
-    Given I have trained a simple TensorFlow model
-    When I input the value 5
-    Then the prediction should be close to 9
+  Background:
+    Given a linear regression TensorFlow model has been trained to learn y = 2x - 1
+
+  Scenario: Predict output for a known input
+    When I input the value 5 into the model
+    Then the predicted output should be within 0.1 of 9

@@ -1,8 +1,8 @@
-# cucumber-playwright
+# cucumber-automation
 
-# Cucumber Playwright Framework 🚀
+# Cucumber Automation Framework 🚀
 
-This repository hosts a robust and scalable **Cucumber Playwright** framework designed to facilitate Behavior-Driven Development (BDD) practices for end-to-end testing. It seamlessly integrates **Cucumber** and **Playwright** in a TypeScript environment to deliver automated test scripts that are maintainable, efficient, and aligned with modern development practices.
+This repository hosts a robust and scalable **Cucumber Automation** framework designed to facilitate Behavior-Driven Development (BDD) practices for end-to-end testing. It seamlessly integrates **Cucumber** and **Playwright** in a TypeScript environment to deliver automated test scripts that are maintainable, efficient, and aligned with modern development practices.
 
 ---
 
