@@ -83,7 +83,7 @@ This repository hosts a robust and scalable **Cucumber Playwright** framework de
    npm run prepReport
    ```
 
-5. **Install k6 Globally: Install k6 globally on your system to use it as a CLI:**
+5. **Optional Install for Performance Testing k6 Globally: Install k6 globally on your system to use it as a CLI:**
 
    **Mac:**
 
