@@ -1,17 +1,18 @@
 // src/support/world.ts
 import { IWorldOptions, setWorldConstructor, World } from '@cucumber/cucumber';
-import { Page } from 'playwright';
-import { Span } from '@opentelemetry/api';
+import type { Page } from 'playwright';
+import type { Span } from '@opentelemetry/api';
+import type * as tf from '@tensorflow/tfjs-node';
 
 export class CustomWorld extends World {
-  // your page handle
-  page?: Page;
+  page!: Page;
+  currentSpan!: Span;
 
-  // will hold the span for each scenario
-  currentSpan?: Span;
+  // ← ADD THESE TWO
+  model!: tf.LayersModel;
+  prediction?: number;
 
   constructor(options: IWorldOptions) {
-    // World constructor wires up `attach` and `parameters`
     super(options);
   }
 }
