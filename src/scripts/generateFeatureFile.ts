@@ -173,6 +173,7 @@ async function createFeatureAndSteps() {
 Generate a Gherkin feature file titled "${featureTitle}" with exactly ${scenarioCount} scenarios.
 
 Requirements:
+- Always include a Background section with at least 2 realistic Given steps.
 - Brief description under Feature.
 - First scenario: happy path.
 - Next ${scenarioCount - 2} scenarios: negative or edge.
