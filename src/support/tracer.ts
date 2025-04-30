@@ -3,23 +3,25 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { FsInstrumentation } from '@opentelemetry/instrumentation-fs';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { Resource } from '@opentelemetry/resources';
+// ← CHANGE THIS:
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
+// you don’t need to manually wire a BatchSpanProcessor when you pass traceExporter to NodeSDK
 
 console.log('⏳ Initializing OpenTelemetry...');
 
 // Create and export the tracer
 export const tracer = trace.getTracer('cucumber-playwright');
 
-// Create the OTLP exporter - use the correct endpoint path
+// Create the OTLP exporter
 const otlpExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4318/v1/traces', // Note the "/v1/traces" path
+  url: 'http://localhost:4318/v1/traces',
 });
 
 // Initialize the SDK
 const sdk = new NodeSDK({
-  resource: new Resource({
+  // ← use the factory instead of new Resource()
+  resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'cucumber-playwright',
   }),
   traceExporter: otlpExporter,
@@ -29,52 +31,34 @@ const sdk = new NodeSDK({
   ],
 });
 
-// Start the SDK
 sdk.start();
 console.log('✅ OpenTelemetry initialized');
 
-// Create a test span using the tracer
+// Create a test span
 const span = tracer.startSpan('telemetry-initialization');
 span.setAttribute('status', 'successful');
-console.log('🔍 Created test span');
 span.end();
 
-// Simplified non-blocking shutdown function
+// Optional manual shutdown helper
 export async function shutdownTelemetry() {
   console.log('Manual shutdown of OpenTelemetry requested');
-  
   try {
-    // Set a timeout for the shutdown
-    const shutdownPromise = sdk.shutdown();
-    
-    // Create a timeout promise
-    const timeoutPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('⚠️ OpenTelemetry shutdown timed out');
-        resolve(false);
-      }, 3000);
-    });
-    
-    // Race the promises
-    const result = await Promise.race([
-      shutdownPromise.then(() => true),
-      timeoutPromise
+    await Promise.race([
+      sdk.shutdown(),
+      new Promise<void>(res =>
+        setTimeout(() => {
+          console.warn('⚠️ OpenTelemetry shutdown timed out after 3s');
+          res();
+        }, 3000)
+      ),
     ]);
-    
-    if (result === true) {
-      console.log('✅ OpenTelemetry shutdown completed successfully');
-    }
-    
-    return true; // Continue regardless of shutdown success
+    console.log('✅ OpenTelemetry shutdown completed');
   } catch (err) {
     console.warn('⚠️ OpenTelemetry shutdown error:', err);
-    return false;
   }
 }
 
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM');
+  console.log('Received SIGTERM, shutting down…');
   shutdownTelemetry().finally(() => process.exit(0));
 });
-
-console.log('✅ Tracer utility fully initialized');
