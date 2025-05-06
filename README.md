@@ -62,7 +62,7 @@ This repository hosts a robust and scalable **Cucumber Automation** framework de
 
    ```sh
    git clone https://github.com/iso13/cucumber-automation.git
-   cd cucumber-playwright
+   cd cucumber-automation
    ```
 
 2. **Install dependencies:**
