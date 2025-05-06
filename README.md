@@ -61,7 +61,7 @@ This repository hosts a robust and scalable **Cucumber Automation** framework de
 1. **Clone the repository:**
 
    ```sh
-   git clone https://github.com/iso13/cucumber-playwright.git
+   git clone https://github.com/iso13/cucumber-automation.git
    cd cucumber-playwright
    ```
 
