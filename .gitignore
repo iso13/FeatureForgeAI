@@ -18,6 +18,7 @@ src/support/apiKey
 
 build/
 
+videos/
 
 **/*.js
 **/*.js.map
