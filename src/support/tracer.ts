@@ -1,64 +1,72 @@
 import { trace } from '@opentelemetry/api';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { FsInstrumentation } from '@opentelemetry/instrumentation-fs';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-// ← CHANGE THIS:
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
-// you don’t need to manually wire a BatchSpanProcessor when you pass traceExporter to NodeSDK
 
-console.log('⏳ Initializing OpenTelemetry...');
-
-// Create and export the tracer
 export const tracer = trace.getTracer('cucumber-playwright');
 
-// Create the OTLP exporter
-const otlpExporter = new OTLPTraceExporter({
-  url: 'http://localhost:4318/v1/traces',
-});
+let sdk: any;
+const isTracingEnabled = process.env.ENABLE_TRACING === 'true';
 
-// Initialize the SDK
-const sdk = new NodeSDK({
-  // ← use the factory instead of new Resource()
-  resource: resourceFromAttributes({
+async function initTelemetry() {
+  console.log('⏳ Initializing OpenTelemetry...');
+
+  const { NodeSDK } = await import('@opentelemetry/sdk-node');
+  const { HttpInstrumentation } = await import('@opentelemetry/instrumentation-http');
+  const { FsInstrumentation } = await import('@opentelemetry/instrumentation-fs');
+  const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
+  const { Resource } = await import('@opentelemetry/resources');
+  const { ATTR_SERVICE_NAME } = await import('@opentelemetry/semantic-conventions');
+
+  const otlpExporter = new OTLPTraceExporter({
+    url: 'http://localhost:4318/v1/traces',
+  });
+
+  const resource = new Resource({
     [ATTR_SERVICE_NAME]: 'cucumber-playwright',
-  }),
-  traceExporter: otlpExporter,
-  instrumentations: [
-    new HttpInstrumentation(),
-    new FsInstrumentation(),
-  ],
-});
+    'deployment.environment': process.env.ENV || 'local',
+  });
 
-sdk.start();
-console.log('✅ OpenTelemetry initialized');
+  sdk = new NodeSDK({
+    resource,
+    traceExporter: otlpExporter,
+    instrumentations: [new HttpInstrumentation(), new FsInstrumentation()],
+  });
 
-// Create a test span
-const span = tracer.startSpan('telemetry-initialization');
-span.setAttribute('status', 'successful');
-span.end();
+  await sdk.start();
+  console.log('✅ OpenTelemetry initialized');
 
-// Optional manual shutdown helper
-export async function shutdownTelemetry() {
-  console.log('Manual shutdown of OpenTelemetry requested');
-  try {
-    await Promise.race([
-      sdk.shutdown(),
-      new Promise<void>(res =>
-        setTimeout(() => {
-          console.warn('⚠️ OpenTelemetry shutdown timed out after 3s');
-          res();
-        }, 3000)
-      ),
-    ]);
-    console.log('✅ OpenTelemetry shutdown completed');
-  } catch (err) {
-    console.warn('⚠️ OpenTelemetry shutdown error:', err);
-  }
+  const span = tracer.startSpan('telemetry-initialization');
+  span.setAttribute('status', 'successful');
+  span.end();
 }
 
-process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down…');
-  shutdownTelemetry().finally(() => process.exit(0));
-});
+if (isTracingEnabled) {
+  initTelemetry().catch((err) => {
+    console.error('🚨 OpenTelemetry failed to initialize:', err);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('Received SIGTERM, shutting down…');
+    shutdownTelemetry().finally(() => process.exit(0));
+  });
+} else {
+  console.log('🚫 OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
+}
+
+export async function shutdownTelemetry() {
+  if (isTracingEnabled && sdk) {
+    console.log('Manual shutdown of OpenTelemetry requested');
+    try {
+      await Promise.race([
+        sdk.shutdown(),
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            console.warn('⚠️ OpenTelemetry shutdown timed out after 3s');
+            resolve();
+          }, 3000)
+        ),
+      ]);
+      console.log('✅ OpenTelemetry shutdown completed');
+    } catch (err) {
+      console.warn('⚠️ OpenTelemetry shutdown error:', err);
+    }
+  }
+}
