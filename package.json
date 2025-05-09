@@ -79,7 +79,7 @@
     "axe-html-reporter": "2.2.11",
     "axe-playwright": "2.0.3",
     "axios": "1.7.7",
-    "chai": "^5.1.2",
+    "chai": "^4.5.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "eslint": "^9.13.0",
