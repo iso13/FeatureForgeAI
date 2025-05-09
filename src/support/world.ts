@@ -9,10 +9,10 @@ export interface CustomWorld extends World {
   testSpan?: Span;
   stepSpan?: Span;
   scenarioName: string;
-  featureName: string; // Added property for feature name
+  featureName: string;
   pickle: any;
-  a11yResults?: any; // Using 'any' type for accessibility results
-  launchBrowser(): Promise<void>;
+  a11yResults?: any;
+  launchBrowser(options?: { headless?: boolean }): Promise<void>;
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
@@ -32,12 +32,14 @@ class PlaywrightWorld extends World implements CustomWorld {
     this.featureName = '';
   }
 
-  async launchBrowser(): Promise<void> {
+  async launchBrowser(options: { headless?: boolean } = {}): Promise<void> {
+    const headless = options.headless !== undefined ? options.headless : true;
+
     try {
-      this.browser = await chromium.launch({ headless: true });
+      this.browser = await chromium.launch({ headless });
       this.context = await this.browser.newContext();
       this.page = await this.context.newPage();
-      console.log('✅ Browser launched successfully, page created');
+      console.log(`✅ Browser launched successfully (headless: ${headless}), page created`);
     } catch (error) {
       console.error('❌ Failed to launch browser:', error);
       throw error;
