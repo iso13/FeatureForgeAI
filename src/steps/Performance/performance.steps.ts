@@ -5,53 +5,47 @@ import path from 'path';
 
 let testResult: string;
 
-// Define a custom context type
 interface TestContext {
   endpoint?: string;
   method?: string;
 }
 
-// Update the Given step definition
 Given(
   'I perform a load test on the {string} endpoint using the {string} method',
   function (this: TestContext, endpoint: string, method: string) {
-    console.log(`Load test setup for endpoint: ${endpoint} using method: ${method}`);
+    console.log(`📊 Load test setup: ${method.toUpperCase()} ${endpoint}`);
     this.endpoint = endpoint;
     this.method = method;
   }
 );
 
-// Update the And step definition
 Given(
   'the test runs with {int} virtual users for a duration of {int} seconds',
   async function (this: TestContext, vus: number, duration: number) {
     const jsonReportPath = 'reports/performance/loadTest.json';
-
-    // Ensure reports directory exists
     if (!fs.existsSync('reports/performance')) {
       fs.mkdirSync('reports/performance', { recursive: true });
     }
 
-    // Path to loadTest.js file
     const loadTestPath = path.resolve(
       __dirname,
       '../../support/performance/loadTest.js'
     );
 
-    // Validate endpoint and method
     if (!this.endpoint || !this.method) {
-      throw new Error('Endpoint or HTTP method is not defined in the context.');
+      throw new Error('Endpoint or HTTP method is not defined.');
     }
 
-    // Command to run k6 using the globally installed k6 binary
-    const command = `k6 run ${loadTestPath}`;
+    const command = `k6 run \
+  --out experimental-prometheus-rw=http://localhost:9090/api/v1/write \
+  --out json=reports/performance/loadTest.json \
+  ${loadTestPath}`;
 
-    console.log(`Running load test on endpoint: ${this.endpoint}`);
-    console.log(`Command: ${command}`);
-    console.log(`Environment variables - VUS: ${vus}, DURATION: ${duration}s`);
+    console.log(`🚀 Running k6 load test...`);
+    console.log(`➡️  Command: ${command}`);
+    console.log(`🔧 Env - VUS: ${vus}, Duration: ${duration}s, Endpoint: ${this.endpoint}, Method: ${this.method}`);
 
     try {
-      // Execute k6 command synchronously with environment variables for VUs and duration
       execSync(command, {
         env: {
           ...process.env,
@@ -60,75 +54,45 @@ Given(
           ENDPOINT: this.endpoint,
           METHOD: this.method,
         },
-        stdio: 'inherit', // Change to inherit to see logs live
+        stdio: 'inherit',
       });
     } catch (error) {
-      const err = error as Error;
-      console.error(
-        `k6 test execution failed with error message: ${err.message}`
-      );
-      console.error(`Stack trace: ${err.stack}`);
-      throw new Error(
-        'k6 test failed with an error. Check the logs for more details.'
-      );
+      console.error('❌ k6 execution failed:', (error as Error).message);
+      throw new Error('k6 test run failed. Check logs above for details.');
     }
 
-    // Read the result from the JSON report
     if (fs.existsSync(jsonReportPath)) {
-      console.log('Load test JSON report found, reading results.');
+      console.log('✅ Load test completed. Reading results...');
       testResult = fs.readFileSync(jsonReportPath, 'utf8');
     } else {
-      console.error('Load test JSON report was not found.');
       throw new Error('Load test JSON report was not found.');
     }
   }
 );
 
-// The other Then steps remain the same
 Then('the test should complete successfully', function (): void {
   const resultData = JSON.parse(testResult);
   const checks = resultData.metrics.checks;
-
-  if (checks && checks.values.rate < 1) {
-    throw new Error(
-      `Test did not complete successfully. Success rate was ${checks.values.rate * 100}%.`
-    );
-  } else {
-    console.log('All checks passed successfully with a 100% success rate.');
+  if (checks?.values.rate < 1) {
+    throw new Error(`Test failed. Success rate was ${(checks.values.rate * 100).toFixed(2)}%.`);
   }
+  console.log('✅ All checks passed successfully with a 100% success rate.');
 });
 
-Then(
-  'the average response time should be below {int}ms',
-  function (responseTimeThreshold: number): void {
-    const resultData = JSON.parse(testResult);
-    const httpReqDuration = resultData.metrics['http_req_duration'];
-
-    if (httpReqDuration) {
-      const avgResponseTime = httpReqDuration.values.avg;
-      if (avgResponseTime >= responseTimeThreshold) {
-        throw new Error(
-          `Average response time ${avgResponseTime}ms exceeds threshold of ${responseTimeThreshold}ms.`
-        );
-      }
-    } else {
-      console.error('Average response time data not found in k6 results.');
-      throw new Error('Average response time not found in k6 results.');
-    }
-  }
-);
-
-Then('the success rate should be {int}%', function (successRate: number): void {
+Then('the average response time should be below {int}ms', function (threshold: number): void {
   const resultData = JSON.parse(testResult);
-  const checks = resultData.metrics.checks;
-
-  if (checks && checks.values.rate * 100 < successRate) {
-    throw new Error(
-      `Success rate ${checks.values.rate * 100}% is below expected ${successRate}%.`
-    );
-  } else {
-    console.log(
-      `Success rate is ${checks.values.rate * 100}% and meets the expected ${successRate}%.`
-    );
+  const avg = resultData.metrics['http_req_duration']?.values.avg;
+  if (avg === undefined || avg >= threshold) {
+    throw new Error(`Average response time ${avg}ms exceeds threshold ${threshold}ms.`);
   }
+  console.log(`ℹ️  Avg response time: ${avg}ms (threshold: ${threshold}ms)`);
+});
+
+Then('the success rate should be {int}%', function (expectedRate: number): void {
+  const resultData = JSON.parse(testResult);
+  const rate = resultData.metrics.checks?.values.rate * 100;
+  if (rate < expectedRate) {
+    throw new Error(`Success rate ${rate}% is below expected ${expectedRate}%.`);
+  }
+  console.log(`✅ Success rate is ${rate}% and meets the expected ${expectedRate}%.`);
 });
