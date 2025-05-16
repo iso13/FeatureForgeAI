@@ -1,0 +1,32 @@
+[
+  {
+    "id": "doc1",
+    "title": "Resetting Your Password",
+    "body": "To reset your password, navigate to the login screen and click on 'Forgot Password'. Follow the instructions sent to your registered email.",
+    "tags": ["password", "reset", "login"]
+  },
+  {
+    "id": "doc2",
+    "title": "Account Recovery Options",
+    "body": "If you no longer have access to your email, contact the IT helpdesk to verify your identity and recover your account.",
+    "tags": ["account", "recovery", "helpdesk"]
+  },
+  {
+    "id": "doc3",
+    "title": "Two-Factor Authentication Setup",
+    "body": "Enable 2FA by going to your account settings and choosing 'Security'. Select your preferred second-factor method (e.g., SMS, Authenticator App).",
+    "tags": ["2fa", "security", "setup"]
+  },
+  {
+    "id": "doc4",
+    "title": "Changing Your Username",
+    "body": "Username changes can only be requested through your HR administrator. Submit a username change form via the internal HR portal.",
+    "tags": ["username", "hr", "change"]
+  },
+  {
+    "id": "doc5",
+    "title": "Resetting MFA Device",
+    "body": "If you lost your MFA device, contact security to reset your multi-factor authentication settings and re-enroll.",
+    "tags": ["mfa", "reset", "security"]
+  }
+]
