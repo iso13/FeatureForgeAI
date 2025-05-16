@@ -18,8 +18,6 @@ Feature: Validate Retrieval Augmented Generation
     Then the AI should generate a summary from the retrieved documents
     And the summary should include the phrase "reset your password"
 
-
-  @banana
   Scenario: Handle missing or irrelevant results
     When I search with the query "banana unicorn"
     Then the system should avoid generating a misleading summary
