@@ -15,6 +15,7 @@ export interface CustomWorld extends World {
   featureName: string;
   pickle: any;
   a11yResults?: any;
+  lastSummaryOutput?: string;
   launchBrowser(options?: { headless?: boolean }): Promise<void>;
 
   // Agentic AI fields

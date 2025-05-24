@@ -27,7 +27,7 @@ Feature: AI helps notify investors about capital calls
     And log each attempt to send
 
   Scenario: Fix missing info and let AI continue
-    And Start to type your And step here the AI failed earlier because investor data was missing
+    And the AI failed earlier because investor data was missing
     When the missing info is added
     And the AI is told to continue
     Then it should pick up where it left off and finish everything

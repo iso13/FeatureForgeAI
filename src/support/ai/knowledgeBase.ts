@@ -17,7 +17,7 @@ export function loadKnowledgeBase(): Record<string, string> {
         const data = fs.readFileSync(KNOWLEDGE_BASE_PATH, 'utf8');
         return JSON.parse(data);
     } catch (error) {
-        console.error('❌ Error reading knowledge base:', error);
+        console.error('Error reading knowledge base:', error);
         return {};
     }
 }
@@ -28,9 +28,9 @@ export function loadKnowledgeBase(): Record<string, string> {
 export function saveKnowledgeBase(knowledgeBase: Record<string, string>): void {
     try {
         fs.writeFileSync(KNOWLEDGE_BASE_PATH, JSON.stringify(knowledgeBase, null, 2), 'utf8');
-        console.log('✅ Knowledge base updated successfully.');
+        console.log('Knowledge base updated successfully.');
     } catch (error) {
-        console.error('❌ Error saving knowledge base:', error);
+        console.error('Error saving knowledge base:', error);
     }
 }
 

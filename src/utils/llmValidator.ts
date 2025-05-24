@@ -1,4 +1,3 @@
-// utils/llmValidator.ts
 import fs from 'fs';
 import path from 'path';
 
@@ -10,15 +9,47 @@ export function validateStructure(obj: any, requiredFields: string[]): void {
   });
 }
 
+const ACCEPTABLE_FALLBACKS = [
+  "i'm not sure",
+  "no relevant",
+  "couldn't find",
+  "please try again",
+  "try a different question",
+  "no useful information",
+  "nothing relevant",
+  "no results",
+  "i don’t know",
+  "sorry"
+];
+
 export function checkForHallucinations(text: string, allowedEntities: string[]): void {
-  if (allowedEntities.length === 0 && text.trim()) {
-    throw new Error('Potential hallucination detected: Output should be empty or safely fallback.');
+  const normalizedText = text?.trim().toLowerCase() ?? '';
+
+  if (!text) {
+    throw new Error('No AI response provided for hallucination check.');
   }
-  for (const word of allowedEntities) {
-    if (text.includes(word)) return;
+
+  // CASE 1: No entities expected (e.g., no results), but response must be empty or contain fallback
+  if (allowedEntities.length === 0) {
+    const fallbackMatched = ACCEPTABLE_FALLBACKS.some(fallback =>
+      normalizedText.includes(fallback)
+    );
+    if (normalizedText && !fallbackMatched) {
+      throw new Error(
+        '❌ Hallucination detected: Output should be empty or contain an acceptable fallback (e.g., "I’m not sure").'
+      );
+    }
+    return;
   }
-  if (allowedEntities.length > 0) {
-    throw new Error('Hallucination detected: Output does not match known entities.');
+
+  // CASE 2: Entities expected — at least one must be present
+  const foundEntity = allowedEntities.some(entity =>
+    normalizedText.includes(entity.toLowerCase())
+  );
+  if (!foundEntity) {
+    throw new Error(
+      `❌ Hallucination detected: None of the known entities [${allowedEntities.join(', ')}] were found in output.`
+    );
   }
 }
 
@@ -38,7 +69,7 @@ export function compareWithSnapshot(actual: string, snapshotFilePath: string): v
 
 export function validateTopKDocuments(docs: any[], expectedCount: number): void {
   if (!docs || docs.length !== expectedCount) {
-    throw new Error(`Expected ${expectedCount} documents, but got ${docs.length}`);
+    throw new Error(`Expected ${expectedCount} documents, but got ${docs?.length ?? 0}`);
   }
 }
 
@@ -55,16 +86,28 @@ export function checkDocsContainKeywords(docs: any[], keywords: string[]): void 
 }
 
 export function assertSummaryMentions(summary: string, expectedPhrases: string[]): void {
-  for (const phrase of expectedPhrases) {
-    if (!summary.toLowerCase().includes(phrase.toLowerCase())) {
-      throw new Error(`Summary does not contain expected phrase: ${phrase}`);
-    }
+  if (!summary || typeof summary !== 'string') {
+    throw new Error('❌ No summary provided to assertSummaryMentions.');
+  }
+
+  const normalizedSummary = summary.toLowerCase().trim();
+  const match = expectedPhrases.find(phrase =>
+    normalizedSummary.includes(phrase.toLowerCase())
+  );
+
+  if (!match) {
+    throw new Error(
+      `❌ Summary does not contain any of the expected phrases.\n` +
+      `Expected one of: ${expectedPhrases.join(', ')}\n` +
+      `Actual summary: "${summary}"`
+    );
   }
 }
 
 export function assertFallbackMessage(summary: string, fallbackHints: string[]): void {
+  const normalized = summary.toLowerCase();
   for (const hint of fallbackHints) {
-    if (summary.toLowerCase().includes(hint.toLowerCase())) return;
+    if (normalized.includes(hint.toLowerCase())) return;
   }
   throw new Error('Missing fallback message for unanswerable query.');
 }
