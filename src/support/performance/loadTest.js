@@ -32,14 +32,14 @@ export default function () {
   }
 
   check(res, {
-    "✅ status is 200": (r) => r.status === 200,
-    "⏱️ response time < 1000ms": (r) => r.timings.duration < 1000,
+    "status is 200": (r) => r.status === 200,
+    "⏱response time < 1000ms": (r) => r.timings.duration < 1000,
   });
 
   sleep(1);
 }
 
-// 📊 Handle summary output (JSON + HTML)
+// Handle summary output (JSON + HTML)
 export function handleSummary(data) {
   return {
     [`${reportPath}loadTest.json`]: JSON.stringify(data, null, 2),

@@ -29,10 +29,10 @@ export async function generateGherkinPrompt(prompt: string): Promise<string> {
         content = content.replace(/```gherkin|```/g, '').trim();
         content = content.replace(/Feature: .+\n/g, '').trim();
 
-        console.log('✅ Gherkin content successfully generated.');
+        console.log('Gherkin content successfully generated.');
         return content;
     } catch (error) {
-        console.error('❌ Error generating Gherkin content:', error);
+        console.error('Error generating Gherkin content:', error);
         throw new Error('Failed to generate content from OpenAI.');
     }
 }
@@ -72,7 +72,7 @@ export async function generateStepDefinitions(gherkinContent: string): Promise<s
         // Cleanup formatting issues
         stepDefinitions = stepDefinitions.replace(/```typescript|```/g, '').trim();
 
-        console.log('✅ Step definitions successfully generated.');
+        console.log('Step definitions successfully generated.');
 
         // ✅ Save new steps to the knowledge base
         stepDefinitions.split('\n').forEach(stepDef => {
@@ -89,7 +89,7 @@ export async function generateStepDefinitions(gherkinContent: string): Promise<s
 
         return stepDefinitions;
     } catch (error) {
-        console.error('❌ Error generating step definitions:', error);
+        console.error('Error generating step definitions:', error);
         throw new Error('Failed to generate step definitions from OpenAI.');
     }
 }

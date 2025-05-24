@@ -19,7 +19,7 @@ export async function generateSummaryLLM(
   query: string,
   parentSpan?: Span
 ): Promise<string> {
-  const fallback = "I'm sorry, I couldn’t find relevant information. Can you please rephrase your question?";
+  const fallback = 'I\'m sorry, I couldn’t find relevant information. Can you please rephrase your question?';
   const context = docs.map((doc, i) => `Doc ${i + 1}:\n${doc}`).join('\n\n');
 
   return await withSpan('generateSummaryLLM', async span => {

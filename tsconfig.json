@@ -17,6 +17,6 @@
     "allowJs": true,
     "moduleDetection": "force"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["scripts/**/*.ts", "src/**/*.ts", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }

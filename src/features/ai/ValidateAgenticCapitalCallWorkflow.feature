@@ -1,33 +1,33 @@
 @validateAgenticCapitalCallWorkflow @no-browser
-Feature: Validate Agentic AI Workflow for Capital Call Notifications
-    As a fund administrator,
-    I want the AI agent to autonomously generate and deliver capital call notifications,
-    So that investor communications are accurate, timely, and traceable.
+Feature: AI helps notify investors about capital calls
+  As someone managing funds,
+  I want the AI to handle investor notifications automatically,
+  So that messages go out correctly and on time.
 
-    Background:
-        Given the AI agent has access to investor records and fund agreements
+  Background:
+    Given the AI can see investor records and fund agreements
 
-    Scenario: Execute agent workflow for capital call notification
-        When the AI agent is instructed to notify investors of a capital call
-        Then the agent should generate a capital call summary
-        And the agent should validate compliance of the generated summary
-        And the agent should send the notification to each investor
-        And each step should be logged with a timestamp
+  Scenario: Notify investors about a new capital call
+    When I tell the AI to send a capital call notification
+    Then it should write a summary of the capital call
+    And make sure the summary follows all compliance rules
+    And send the message to each investor
+    And record each step it takes with a timestamp
 
-    Scenario: Handle missing investor data during agent execution
-        And the investor records are incomplete
-        When the AI agent attempts to generate a capital call summary
-        Then the agent should log an error indicating missing data
-        And the agent should halt the workflow and notify the administrator
+  Scenario: Stop if investor info is missing
+    And some investor records are incomplete
+    When the AI tries to create the summary
+    Then it should log an error about the missing info
+    And stop and alert the administrator
 
-    Scenario: Retry notification delivery after failure
-        And the notification service is temporarily unavailable
-        When the AI agent attempts to send notifications
-        Then the agent should retry delivery with exponential backoff
-        And the agent should log each retry attempt
+  Scenario: Try again if sending fails
+    And the notification service is down
+    When the AI tries to send out the messages
+    Then it should keep retrying with longer delays
+    And log each attempt to send
 
-    Scenario: Update investor data and resume agent execution
-        And the agent previously failed due to missing data
-        When the administrator provides the missing investor records
-        And the agent resumes the workflow
-        Then the agent should complete all remaining steps successfully
+  Scenario: Fix missing info and let AI continue
+    And Start to type your And step here the AI failed earlier because investor data was missing
+    When the missing info is added
+    And the AI is told to continue
+    Then it should pick up where it left off and finish everything

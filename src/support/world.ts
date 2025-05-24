@@ -11,23 +11,29 @@ export interface CustomWorld extends World {
   testSpan?: Span;
   stepSpan?: Span;
   scenarioName: string;
+  aiSummary?: string;
   featureName: string;
   pickle: any;
   a11yResults?: any;
   launchBrowser(options?: { headless?: boolean }): Promise<void>;
 
-  // ✅ Agentic AI fields
+  // Agentic AI fields
   agent?: CapitalCallAgent;
   workflowSteps?: any;
   error?: any;
 
-  // ✅ RAG testing fields
+  // RAG testing fields
   rag?: RAGEngine;
   summary: string;
   retrievedDocs?: any[];
-
-  // ✅ Track the last query used in a scenario
   lastQuery?: string;
+
+  // Agentic test data
+  fundAgreements?: any[];
+  investors?: any[];
+  capitalCalls?: any[];
+  notificationLogs?: any[];
+  serviceDown?: boolean;
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
@@ -41,16 +47,23 @@ class PlaywrightWorld extends World implements CustomWorld {
   pickle: any;
   a11yResults?: any;
 
-  // ✅ Agentic AI
+  // Agentic AI
   agent?: CapitalCallAgent;
   workflowSteps?: any;
   error?: any;
 
-  // ✅ RAG
+  // RAG
   rag?: RAGEngine;
   summary: string = '';
   retrievedDocs?: any[] = [];
   lastQuery?: string;
+
+  // Agentic test data
+  fundAgreements?: any[];
+  investors?: any[];
+  capitalCalls?: any[];
+  notificationLogs?: any[];
+  serviceDown?: boolean;
 
   constructor(options: IWorldOptions) {
     super(options);
@@ -63,9 +76,9 @@ class PlaywrightWorld extends World implements CustomWorld {
       this.browser = await chromium.launch({ headless });
       this.context = await this.browser.newContext();
       this.page = await this.context.newPage();
-      console.log(`✅ Browser launched successfully (headless: ${headless}), page created`);
+      console.log(`Browser launched successfully (headless: ${headless}), page created`);
     } catch (error) {
-      console.error('❌ Failed to launch browser:', error);
+      console.error('Failed to launch browser:', error);
       throw error;
     }
   }

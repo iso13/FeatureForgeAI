@@ -1,0 +1,16 @@
+[
+  {
+    "id": "INV-001",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "investmentAmount": 500000,
+    "active": true
+  },
+  {
+    "id": "INV-002",
+    "name": "John Smith",
+    "email": "",
+    "investmentAmount": 250000,
+    "active": true
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "type": "timeseries",
+      "title": "Avg LLM Summary Response Time",
+      "targets": [
+        {
+          "expr": "avg(rate(llm_response_latency_seconds_sum[1m])) / avg(rate(llm_response_latency_seconds_count[1m]))",
+          "legendFormat": "LLM Latency (avg)",
+          "interval": "",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "datasource": "Prometheus",
+      "type": "timeseries",
+      "title": "K6 HTTP Request Duration (p95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_req_duration_bucket[1m])) by (le))",
+          "legendFormat": "http_req_duration p95",
+          "refId": "B"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "datasource": "Prometheus",
+      "type": "timeseries",
+      "title": "K6 Success Rate",
+      "targets": [
+        {
+          "expr": "rate(checks{status=\"pass\"}[1m]) / rate(checks[1m])",
+          "legendFormat": "Success Rate",
+          "refId": "C"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "datasource": "Prometheus",
+      "type": "timeseries",
+      "title": "Virtual Users (VUs)",
+      "targets": [
+        {
+          "expr": "vus",
+          "legendFormat": "Active VUs",
+          "refId": "D"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    }
+  ],
+  "schemaVersion": 37,
+  "title": "RAG + K6 Performance Overview",
+  "timezone": "browser",
+  "version": 1
+}

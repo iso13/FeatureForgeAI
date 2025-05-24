@@ -1,4 +1,4 @@
-import { clear } from "console";
+import { clear } from 'console';
 
 type AgentContext = {
   investorRecordsAvailable?: boolean;

@@ -6,7 +6,7 @@ import * as path from 'path';
 // Access the exported members
 const { tracer, shutdownTelemetry } = tracerModule;
 
-console.log('🔍 Hooks module loaded, tracer status:', tracer ? 'Available' : 'Not available');
+console.log('Hooks module loaded, tracer status:', tracer ? 'Available' : 'Not available');
 
 Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
     this.pickle = scenario.pickle;
@@ -29,7 +29,7 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
         this.featureName = 'Unknown Feature';
     }
 
-    console.log(`🚀 Starting scenario: ${this.scenarioName} (Feature: ${this.featureName})`);
+    console.log(`Starting scenario: ${this.scenarioName} (Feature: ${this.featureName})`);
 
     try {
         // Create a span with the feature name included
@@ -43,22 +43,22 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
         this.testSpan.setAttribute('test.framework', 'cucumber');
         this.testSpan.setAttribute('browser', 'playwright');
 
-        console.log('📊 Created OpenTelemetry span for scenario');
+        console.log('Created OpenTelemetry span for scenario');
     } catch (err) {
-        console.warn('⚠️ Failed to create OpenTelemetry span:', err);
+        console.warn('Failed to create OpenTelemetry span:', err);
     }
 
     // Ensure the browser is launched before the test starts
     try {
-        console.log("🌍 Launching browser...");
+        console.log('Launching browser...');
         const hasNoBrowserTag = scenario.pickle.tags.some(tag => tag.name === '@no-browser');
         await this.launchBrowser({ headless: hasNoBrowserTag });
         if (!this.page) {
-            throw new Error("Page is still undefined after launching browser");
+            throw new Error('Page is still undefined after launching browser');
         }
-        console.log("✅ Browser and page initialized");
+        console.log('Browser and page initialized');
     } catch (error) {
-        console.error("❌ Browser initialization failed:", error);
+        console.error('Browser initialization failed:', error);
         throw error;
     }
 });
@@ -66,7 +66,7 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
 // Add step instrumentation
 BeforeStep(function (this: CustomWorld, step) {
     const stepText = step.pickleStep.text;
-    console.log(`➡️ Starting step: ${stepText}`);
+    console.log(`Starting step: ${stepText}`);
 
     try {
         // Create a span for each step that includes the feature name
@@ -81,13 +81,13 @@ BeforeStep(function (this: CustomWorld, step) {
         });
         console.log('✓ Created step span');
     } catch (err) {
-        console.warn('⚠️ Failed to create step span:', err);
+        console.warn('Failed to create step span:', err);
     }
 });
 
 AfterStep(function (this: CustomWorld, step) {
     const stepText = step.pickleStep.text;
-    console.log(`✅ Completed step: ${stepText}`);
+    console.log(`Completed step: ${stepText}`);
 
     try {
         if (this.stepSpan) {
@@ -102,16 +102,16 @@ AfterStep(function (this: CustomWorld, step) {
             console.log('✓ Ended step span');
         }
     } catch (err) {
-        console.warn('⚠️ Failed to end step span:', err);
+        console.warn('Failed to end step span:', err);
     }
 });
 
 After(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
-    console.log(`📝 Finished scenario: ${this.scenarioName}`);
+    console.log(`Finished scenario: ${this.scenarioName}`);
 
     try {
         if (scenario.result?.status === Status.FAILED) {
-            console.error(`❌ Scenario Failed: ${this.scenarioName}`);
+            console.error(`Scenario Failed: ${this.scenarioName}`);
 
             // Mark OpenTelemetry Span as failed
             if (this.testSpan) {
@@ -124,26 +124,26 @@ After(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
         // End scenario span
         if (this.testSpan) {
             this.testSpan.end();
-            console.log('📊 Ended OpenTelemetry span for scenario');
+            console.log('Ended OpenTelemetry span for scenario');
         }
 
         // Close browser if it exists
         if (this.browser) {
             await this.browser.close();
-            console.log('🔒 Browser closed');
+            console.log('Browser closed');
         }
 
         // Add a small delay to allow pending spans to be exported
-        console.log('⏱️ Waiting for spans to be exported...');
+        console.log('⏱Waiting for spans to be exported...');
         //await new Promise(resolve => setTimeout(resolve, 500));
     } catch (err) {
-        console.warn('⚠️ Failed to end OpenTelemetry span:', err);
+        console.warn('Failed to end OpenTelemetry span:', err);
     }
 });
 
 // Final hook to ensure all telemetry is flushed and the SDK is shut down
 AfterAll(async function () {
-    console.log('🔄 All tests complete, shutting down OpenTelemetry...');
+    console.log('All tests complete, shutting down OpenTelemetry...');
     try {
         // Add a delay to allow pending spans to be exported
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -153,11 +153,11 @@ AfterAll(async function () {
 
         // Force exit to ensure the process doesn't hang
         setTimeout(() => {
-            console.log('⚠️ Forcing process to exit');
+            console.log('Forcing process to exit');
             process.exit(0);
         }, 1000);
     } catch (err) {
-        console.error('❌ Error shutting down OpenTelemetry:', err);
+        console.error('Error shutting down OpenTelemetry:', err);
         // Force exit on error
         setTimeout(() => {
             process.exit(1);
