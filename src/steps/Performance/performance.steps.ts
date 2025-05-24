@@ -13,7 +13,7 @@ interface TestContext {
 Given(
   'I perform a load test on the {string} endpoint using the {string} method',
   function (this: TestContext, endpoint: string, method: string) {
-    console.log(`📊 Load test setup: ${method.toUpperCase()} ${endpoint}`);
+    console.log(`Load test setup: ${method.toUpperCase()} ${endpoint}`);
     this.endpoint = endpoint;
     this.method = method;
   }
@@ -41,9 +41,9 @@ Given(
   --out json=reports/performance/loadTest.json \
   ${loadTestPath}`;
 
-    console.log(`🚀 Running k6 load test...`);
-    console.log(`➡️  Command: ${command}`);
-    console.log(`🔧 Env - VUS: ${vus}, Duration: ${duration}s, Endpoint: ${this.endpoint}, Method: ${this.method}`);
+    console.log('Running k6 load test...');
+    console.log(`Command: ${command}`);
+    console.log(`Env - VUS: ${vus}, Duration: ${duration}s, Endpoint: ${this.endpoint}, Method: ${this.method}`);
 
     try {
       execSync(command, {
@@ -57,12 +57,12 @@ Given(
         stdio: 'inherit',
       });
     } catch (error) {
-      console.error('❌ k6 execution failed:', (error as Error).message);
+      console.error('k6 execution failed:', (error as Error).message);
       throw new Error('k6 test run failed. Check logs above for details.');
     }
 
     if (fs.existsSync(jsonReportPath)) {
-      console.log('✅ Load test completed. Reading results...');
+      console.log('Load test completed. Reading results...');
       testResult = fs.readFileSync(jsonReportPath, 'utf8');
     } else {
       throw new Error('Load test JSON report was not found.');
@@ -76,7 +76,7 @@ Then('the test should complete successfully', function (): void {
   if (checks?.values.rate < 1) {
     throw new Error(`Test failed. Success rate was ${(checks.values.rate * 100).toFixed(2)}%.`);
   }
-  console.log('✅ All checks passed successfully with a 100% success rate.');
+  console.log('All checks passed successfully with a 100% success rate.');
 });
 
 Then('the average response time should be below {int}ms', function (threshold: number): void {
@@ -85,7 +85,7 @@ Then('the average response time should be below {int}ms', function (threshold: n
   if (avg === undefined || avg >= threshold) {
     throw new Error(`Average response time ${avg}ms exceeds threshold ${threshold}ms.`);
   }
-  console.log(`ℹ️  Avg response time: ${avg}ms (threshold: ${threshold}ms)`);
+  console.log(`Avg response time: ${avg}ms (threshold: ${threshold}ms)`);
 });
 
 Then('the success rate should be {int}%', function (expectedRate: number): void {
@@ -94,5 +94,5 @@ Then('the success rate should be {int}%', function (expectedRate: number): void 
   if (rate < expectedRate) {
     throw new Error(`Success rate ${rate}% is below expected ${expectedRate}%.`);
   }
-  console.log(`✅ Success rate is ${rate}% and meets the expected ${expectedRate}%.`);
+  console.log(`Success rate is ${rate}% and meets the expected ${expectedRate}%.`);
 });

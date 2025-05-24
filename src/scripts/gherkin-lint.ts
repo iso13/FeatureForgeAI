@@ -30,7 +30,7 @@ function checkFeatureFile(filePath: string): boolean {
             placeholders.forEach(placeholder => {
                 const found = exampleLines.some(l => l.includes(`| ${placeholder} |`));
                 if (!found) {
-                    console.error(`❌ [${filePath}:${index + 1}] Missing placeholder value for: <${placeholder}>`);
+                    console.error(`[${filePath}:${index + 1}] Missing placeholder value for: <${placeholder}>`);
                     hasErrors = true;
                 }
             });
@@ -50,10 +50,10 @@ function lintFeatureFiles(): void {
     });
 
     if (errorCount > 0) {
-        console.error(`\n🚨 Found ${errorCount} issue(s). Please fix them before committing.`);
+        console.error(`Found ${errorCount} issue(s). Please fix them before committing.`);
         process.exit(1);
     } else {
-        console.log('✅ All Gherkin files passed custom linting.');
+        console.log('All Gherkin files passed custom linting.');
     }
 }
 

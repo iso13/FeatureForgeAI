@@ -15,9 +15,9 @@ const openai = new OpenAI({
 const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
 const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
 
-console.log('🚀 Starting Feature & Step Definition Generation...');
+console.log('Starting Feature & Step Definition Generation...');
 
-// ✅ Function to Enforce Declarative Steps
+// Function to Enforce Declarative Steps
 function enforceDeclarativeSteps(content: string): string {
     return content
         .replace(/When I go to the "(.*?)" page/gi, 'Given the "$1" page is displayed')
@@ -27,7 +27,7 @@ function enforceDeclarativeSteps(content: string): string {
         .replace(/Then I should see an error message "(.*?)"/gi, 'Then an error message "$1" should be displayed');
 }
 
-// ✅ Function to Generate AI-Generated Gherkin with Tag and Background
+// Function to Generate AI-Generated Gherkin with Tag and Background
 async function generateGherkinPrompt(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
     const tag = `@${featureTitle.replace(/\s+(.)/g, (_: string, char: string) => char.toUpperCase()).replace(/^./, (str: string) => str.toLowerCase())}`;
     
@@ -54,12 +54,12 @@ Ensure:
         let content = response.choices[0]?.message?.content || '';
         return enforceDeclarativeSteps(content.replace(/```gherkin|```/g, '').trim());
     } catch (error) {
-        console.error('❌ Error generating Gherkin content:', error);
+        console.error('Error generating Gherkin content:', error);
         throw new Error('Failed to generate Gherkin content.');
     }
 }
 
-// ✅ Function to Generate AI-Generated Step Definitions
+// Function to Generate AI-Generated Step Definitions
 async function generateStepDefinitions(gherkinContent: string): Promise<string> {
     const prompt = `Convert the following Gherkin scenarios into TypeScript Cucumber step definitions using Playwright.
 Ensure:
@@ -83,17 +83,17 @@ Output TypeScript code only.`;
 
         return cleanStepDefinitions(response.choices[0]?.message?.content || '');
     } catch (error) {
-        console.error('❌ Error generating step definitions:', error);
+        console.error('Error generating step definitions:', error);
         throw new Error('Failed to generate step definitions.');
     }
 }
 
-// ✅ Function to Clean Step Definitions Output
+// Function to Clean Step Definitions Output
 function cleanStepDefinitions(content: string): string {
     return content.replace(/.*Below are the TypeScript Cucumber step definitions.*|### Explanation:.*|### Notes:.*|```typescript|```/gs, '').trim();
 }
 
-// ✅ Function to Prompt for Feature Title, Story, and Scenario Count
+// Function to Prompt for Feature Title, Story, and Scenario Count
 async function promptForFeatureAndGenerate() {
     try {
         const answers = await inquirer.prompt([
@@ -107,7 +107,7 @@ async function promptForFeatureAndGenerate() {
                 type: 'input',
                 name: 'userStory',
                 message: 'Enter the user story (e.g., "As a user, I want to log in so that I can access my account"):',
-                validate: (input: string) => input.trim().startsWith("As ") ? true : 'User story must start with "As a...".',
+                validate: (input: string) => input.trim().startsWith('As ') ? true : 'User story must start with "As a...".',
             },
             {
                 type: 'input',
@@ -124,13 +124,13 @@ async function promptForFeatureAndGenerate() {
         await generateFeatureFiles(answers.featureTitle, answers.userStory, parseInt(answers.scenarioCount, 10));
 
     } catch (error) {
-        console.error('❌ Error in script:', error);
+        console.error('Error in script:', error);
     }
 }
 
-// ✅ Function to Generate Feature & Step Definitions
+// Function to Generate Feature & Step Definitions
 async function generateFeatureFiles(featureTitle: string, userStory: string, scenarioCount: number) {
-    console.log('🔄 Requesting OpenAI for feature generation...');
+    console.log('Requesting OpenAI for feature generation...');
 
     let gherkinContent = await generateGherkinPrompt(featureTitle, userStory, scenarioCount);
     gherkinContent = enforceDeclarativeSteps(gherkinContent);
@@ -138,17 +138,17 @@ async function generateFeatureFiles(featureTitle: string, userStory: string, sce
     const featureFilePath = path.join(FEATURES_DIR, `${featureTitle.replace(/\s+/g, '')}.feature`);
     await ensureDir(FEATURES_DIR);
     await writeFile(featureFilePath, gherkinContent, 'utf8');
-    console.log(`✅ Feature file saved: ${featureFilePath}`);
+    console.log(`Feature file saved: ${featureFilePath}`);
 
-    console.log('🔄 Generating TypeScript step definitions...');
+    console.log('Generating TypeScript step definitions...');
     let stepDefinitions = await generateStepDefinitions(gherkinContent);
     stepDefinitions = cleanStepDefinitions(stepDefinitions);
 
     const stepFilePath = path.join(STEPS_DIR, `${featureTitle.replace(/\s+/g, '').toLowerCase()}.steps.ts`);
     await ensureDir(STEPS_DIR);
     await writeFile(stepFilePath, stepDefinitions, 'utf8');
-    console.log(`✅ Step definitions saved: ${stepFilePath}`);
+    console.log(`Step definitions saved: ${stepFilePath}`);
 }
 
-// ✅ Start Interactive Prompt
+// Start Interactive Prompt
 promptForFeatureAndGenerate();

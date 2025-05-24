@@ -1,4 +1,4 @@
-@3DModel @ARCompatibleOnly
+@threeDModel @arCompatibleOnly
 Feature: View and interact with 3D model on web AR viewer
 
   Scenario: Verify interaction with 3D model
