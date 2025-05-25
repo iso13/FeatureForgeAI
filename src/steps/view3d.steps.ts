@@ -11,30 +11,35 @@ When('the 3D model should be visible', async function (this: CustomWorld) {
   await expect(this.page!.locator('#model-viewer')).toBeVisible();
 });
 
-Then('the user interacts with the 3D model', async function (this: CustomWorld) {
-  const viewer = this.page!.locator('#model-viewer');
-  await viewer.scrollIntoViewIfNeeded();
-  await viewer.hover();
+Then('the user interacts with the 3D model', async function () {
+  const allCanvases = await this.page.locator('canvas');
+  const count = await allCanvases.count();
+  console.log(`🖼 Found ${count} canvas elements on the page`);
 
-  const box = await viewer.boundingBox();
-  if (box) {
-    const centerX = box.x + box.width / 2;
-    const centerY = box.y + box.height / 2;
+  // Try to get the most likely visible canvas
+  const canvas = allCanvases.first(); // You can use .nth(X) or a better selector if needed
 
-    // First drag (halfway)
-    await this.page!.mouse.move(centerX, centerY);
-    await this.page!.mouse.down();
-    await this.page!.mouse.move(centerX + 300, centerY, { steps: 30 });
-    await this.page!.mouse.up();
+  await canvas.waitFor({ state: 'visible', timeout: 5000 });
 
-    // Second drag (continue rotation)
-    await this.page!.mouse.move(centerX, centerY);
-    await this.page!.mouse.down();
-    await this.page!.mouse.move(centerX + 300, centerY, { steps: 30 });
-    await this.page!.mouse.up();
-
-    console.log('🔁 Simulated two-pass horizontal drag for full 360° rotation');
-  } else {
-    console.warn('⚠️ Could not retrieve bounding box for model-viewer.');
+  const box = await canvas.boundingBox();
+  if (!box || box.width === 0 || box.height === 0) {
+    throw new Error('❌ Could not get usable canvas bounding box');
   }
+
+  const centerX = box.x + box.width / 2;
+  const centerY = box.y + box.height / 2;
+  console.log(`🎯 Targeting canvas center: (${centerX}, ${centerY})`);
+
+  await this.page.waitForTimeout(1000); // buffer before interaction
+
+  // Perform slow two-pass drag
+  await this.page.mouse.move(centerX, centerY);
+  await this.page.mouse.down();
+  await this.page.mouse.move(centerX - 150, centerY, { steps: 40 });
+  await this.page.waitForTimeout(200);
+  await this.page.mouse.move(centerX + 150, centerY, { steps: 40 });
+  await this.page.mouse.up();
+
+  console.log('🔁 Performed two-pass horizontal drag inside visible canvas');
+  await this.page.waitForTimeout(1000); // give time for animation to show up in video
 });

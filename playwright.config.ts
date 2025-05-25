@@ -20,7 +20,7 @@ export default defineConfig({
   use: {
     headless: true,  // Always headless; the `hooks.ts` controls browser mode
     trace: 'on-first-retry',
-    video: 'on',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
+    video: process.env.ENABLE_VIDEO === 'true' ? 'on' : 'off'
   }
 });
