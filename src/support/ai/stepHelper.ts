@@ -11,31 +11,31 @@ const STEPS_DIR = path.resolve(__dirname, '../../steps');
  * Extracts step definitions from existing step files and stores them in the knowledge base.
  */
 export function extractStepsFromFiles(): void {
-    console.log('🔍 Extracting steps from existing step definition files...');
+    console.log('Extracting steps from existing step definition files...');
 
     const knowledgeBase = loadKnowledgeBase();
 
     if (!fs.existsSync(STEPS_DIR)) {
-        console.warn(`⚠️ Steps directory not found at: ${STEPS_DIR}`);
+        console.warn(`Steps directory not found at: ${STEPS_DIR}`);
         return;
     }
 
     const stepFiles = fs.readdirSync(STEPS_DIR).filter(file => file.endsWith('.steps.ts'));
 
     if (stepFiles.length === 0) {
-        console.warn(`⚠️ No step definition files found in: ${STEPS_DIR}`);
+        console.warn(`No step definition files found in: ${STEPS_DIR}`);
         return;
     }
 
-    console.log(`📂 Found ${stepFiles.length} step definition files.`);
+    console.log(`Found ${stepFiles.length} step definition files.`);
 
     let extractedSteps = 0;
     stepFiles.forEach(file => {
         const filePath = path.join(STEPS_DIR, file);
-        console.log(`🔍 Processing file: ${filePath}`);
+        console.log(`Processing file: ${filePath}`);
 
         const content = fs.readFileSync(filePath, 'utf8');
-        console.log(`📜 Read file content (${content.length} characters)`);
+        console.log(`Read file content (${content.length} characters)`);
 
         // Extract step definitions
         const stepRegex = /(Given|When|Then)\('([^']+)'/g;
@@ -45,10 +45,10 @@ export function extractStepsFromFiles(): void {
             if (!knowledgeBase[step]) {
                 const stepDefinition = `${keyword}('${step}', async function () { /* Existing step logic */ });`;
 
-                // ✅ **Call `addStepToKnowledgeBase` to store the step**
+                // **Call `addStepToKnowledgeBase` to store the step**
                 addStepToKnowledgeBase(step, stepDefinition);
 
-                console.log(`✅ Added step to knowledge base: ${keyword}('${step}')`);
+                console.log(`Added step to knowledge base: ${keyword}('${step}')`);
                 extractedSteps++;
             }
         }
@@ -56,9 +56,9 @@ export function extractStepsFromFiles(): void {
 
     if (extractedSteps > 0) {
         saveKnowledgeBase(knowledgeBase);
-        console.log(`✅ Extracted ${extractedSteps} steps and saved them to the knowledge base.`);
+        console.log(`Extracted ${extractedSteps} steps and saved them to the knowledge base.`);
     } else {
-        console.log('ℹ️ No new steps were found.');
+        console.log('ℹNo new steps were found.');
     }
 }
 

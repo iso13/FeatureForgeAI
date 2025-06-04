@@ -9,7 +9,7 @@ const apiKey = process.env.OPENAI_API_KEY;
 const provider = process.env.LLM_PROVIDER || 'mock';
 
 if (provider === 'openai' && !apiKey) {
-  console.warn('❌ OPENAI_API_KEY not found. Falling back to mock mode.');
+  console.warn('OPENAI_API_KEY not found. Falling back to mock mode.');
 }
 
 const openai = apiKey ? new OpenAI({ apiKey }) : undefined;
@@ -44,7 +44,7 @@ export async function generateSummaryLLM(
         const summary = response?.choices?.[0]?.message?.content?.trim() || '';
         const usedFallback = summary.length < 3;
 
-        if (usedFallback) span.addEvent('🟡 Fallback triggered');
+        if (usedFallback) span.addEvent('Fallback triggered');
 
         span.setAttribute('summaryLength', summary.length);
         span.setAttribute('wasFallbackUsed', usedFallback);

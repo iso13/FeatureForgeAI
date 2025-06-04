@@ -14,7 +14,7 @@ if (!(globalThis as any)[METRICS_FLAG]) {
   });
 
   app.listen(port, () => {
-    console.log(`📈 Prometheus metrics available at http://localhost:${port}/metrics`);
+    console.log(`Prometheus metrics available at http://localhost:${port}/metrics`);
   });
 
   (globalThis as any)[METRICS_FLAG] = true;

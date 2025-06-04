@@ -30,18 +30,20 @@ function enforceDeclarativeSteps(content: string): string {
 // Function to Generate AI-Generated Gherkin with Tag and Background
 async function generateGherkinPrompt(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
     const tag = `@${featureTitle.replace(/\s+(.)/g, (_: string, char: string) => char.toUpperCase()).replace(/^./, (str: string) => str.toLowerCase())}`;
-    
+
     const prompt = `Generate a Cucumber BDD feature file with the following details:
 
 Feature Tag: "${tag}"
 Feature Title: "${featureTitle}"
 User Story: "${userStory}"
+Number of Scenarios: ${scenarioCount}
 
 Ensure:
 1. The feature file starts with the tag "${tag}" directly above the Feature keyword.
 2. A Background section is used for any Given steps that are common across all scenarios.
-3. Each scenario must be well-structured and meaningful.
-4. Ensure all steps follow declarative formatting.`;
+3. The file must include exactly ${scenarioCount} scenario(s).
+4. Each scenario must be well-structured and meaningful.
+5. Ensure all steps follow declarative formatting.`;
 
     try {
         const response = await openai.chat.completions.create({
@@ -112,11 +114,11 @@ async function promptForFeatureAndGenerate() {
             {
                 type: 'input',
                 name: 'scenarioCount',
-                message: 'Enter the number of scenarios (default 4, max 6):',
-                default: '4',
+                message: 'Enter the number of scenarios (default 1, max 6):',
+                default: '1',
                 validate: (input: string) => {
                     const num = parseInt(input, 10);
-                    return (num >= 2 && num <= 6) ? true : 'Please enter a number between 2 and 6.';
+                    return (num >= 1 && num <= 6) ? true : 'Please enter a number between 1 and 6.';
                 }
             }
         ]);
@@ -139,6 +141,12 @@ async function generateFeatureFiles(featureTitle: string, userStory: string, sce
     await ensureDir(FEATURES_DIR);
     await writeFile(featureFilePath, gherkinContent, 'utf8');
     console.log(`Feature file saved: ${featureFilePath}`);
+
+    // Optional: Warn if actual scenario count differs
+    const actualScenarioCount = (gherkinContent.match(/^ *Scenario:/gm) || []).length;
+    if (actualScenarioCount !== scenarioCount) {
+        console.warn(`Expected ${scenarioCount} scenarios, but found ${actualScenarioCount} in the generated feature.`);
+    }
 
     console.log('Generating TypeScript step definitions...');
     let stepDefinitions = await generateStepDefinitions(gherkinContent);

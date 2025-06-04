@@ -36,7 +36,7 @@ export function checkForHallucinations(text: string, allowedEntities: string[]):
     );
     if (normalizedText && !fallbackMatched) {
       throw new Error(
-        '❌ Hallucination detected: Output should be empty or contain an acceptable fallback (e.g., "I’m not sure").'
+        'Hallucination detected: Output should be empty or contain an acceptable fallback (e.g., "I’m not sure").'
       );
     }
     return;
@@ -48,7 +48,7 @@ export function checkForHallucinations(text: string, allowedEntities: string[]):
   );
   if (!foundEntity) {
     throw new Error(
-      `❌ Hallucination detected: None of the known entities [${allowedEntities.join(', ')}] were found in output.`
+      `Hallucination detected: None of the known entities [${allowedEntities.join(', ')}] were found in output.`
     );
   }
 }
@@ -87,7 +87,7 @@ export function checkDocsContainKeywords(docs: any[], keywords: string[]): void 
 
 export function assertSummaryMentions(summary: string, expectedPhrases: string[]): void {
   if (!summary || typeof summary !== 'string') {
-    throw new Error('❌ No summary provided to assertSummaryMentions.');
+    throw new Error('No summary provided to assertSummaryMentions.');
   }
 
   const normalizedSummary = summary.toLowerCase().trim();
@@ -97,7 +97,7 @@ export function assertSummaryMentions(summary: string, expectedPhrases: string[]
 
   if (!match) {
     throw new Error(
-      `❌ Summary does not contain any of the expected phrases.\n` +
+      `Summary does not contain any of the expected phrases.\n` +
       `Expected one of: ${expectedPhrases.join(', ')}\n` +
       `Actual summary: "${summary}"`
     );

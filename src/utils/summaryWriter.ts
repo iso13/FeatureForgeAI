@@ -1,4 +1,4 @@
-// 📄 src/utils/summaryWriter.ts
+//src/utils/summaryWriter.ts
 import fs from 'fs';
 import path from 'path';
 import { Span } from '@opentelemetry/api';

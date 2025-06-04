@@ -10,5 +10,5 @@ app.get('/metrics', async (_req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`📈 Prometheus metrics available at http://localhost:${port}/metrics`);
+  console.log(`Prometheus metrics available at http://localhost:${port}/metrics`);
 });

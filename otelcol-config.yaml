@@ -29,7 +29,7 @@ processors:
 
 exporters:
   otlp:
-    endpoint: "jaeger:4317"  # ✅ Corrected to OTLP gRPC
+    endpoint: "jaeger:4317"
     tls:
       insecure: true
 
@@ -37,14 +37,14 @@ exporters:
     endpoint: "0.0.0.0:9464"
 
   debug:
-    verbosity: detailed  # ✅ Logs debug details
+    verbosity: detailed
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, debug]  # ✅ Uses OTLP instead of Jaeger
+      exporters: [otlp, debug]
 
     metrics:
       receivers: [otlp, prometheus]
