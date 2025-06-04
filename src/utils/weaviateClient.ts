@@ -1,4 +1,4 @@
-// 📄 src/utils/weaviateClient.ts
+//src/utils/weaviateClient.ts
 
 import weaviate, { WeaviateClient } from 'weaviate-ts-client';
 import { Span } from '@opentelemetry/api';

@@ -16,7 +16,7 @@ function checkFeatureFile(filePath: string): boolean {
         if (tagMatches) {
             tagMatches.forEach(tag => {
                 if (!tagRegex.test(tag)) {
-                    console.error(`❌ [${filePath}:${index + 1}] Invalid tag: ${tag}. Use camelCase.`);
+                    console.error(`[${filePath}:${index + 1}] Invalid tag: ${tag}. Use camelCase.`);
                     hasErrors = true;
                 }
             });

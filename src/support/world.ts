@@ -22,7 +22,9 @@ export interface CustomWorld extends World {
   pickle: any;
   a11yResults?: any;
   lastSummaryOutput?: string;
-  launchBrowser(contextOptions?: BrowserContextOptions): Promise<void>; // ✅ updated type
+
+  launchBrowser(contextOptions?: BrowserContextOptions): Promise<void>;
+
 
   // Agentic AI fields
   agent?: CapitalCallAgent;

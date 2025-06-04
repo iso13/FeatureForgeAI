@@ -1,5 +1,5 @@
 @wip
-Feature: Execute ConditionalLogic
+Feature: Execute Conditional Logic
   As an AI workflow executor
   I want to apply conditions based on context
   So that decisions reflect real-time CRM data

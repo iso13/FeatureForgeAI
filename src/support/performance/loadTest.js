@@ -27,7 +27,7 @@ export default function () {
   if (method === "GET") {
     res = http.get(url);
   } else {
-    console.error(`❌ Unsupported HTTP method: ${method}`);
+    console.error(`Unsupported HTTP method: ${method}`);
     return;
   }
 

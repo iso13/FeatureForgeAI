@@ -15,7 +15,7 @@ const openai = new OpenAI({
  */
 export async function generateGherkinPrompt(prompt: string): Promise<string> {
     try {
-        console.log('🔄 Sending request to OpenAI...');
+        console.log('Sending request to OpenAI...');
         const response = await openai.chat.completions.create({
             model: 'gpt-4',
             messages: [{ role: 'user', content: prompt }],
@@ -42,9 +42,9 @@ export async function generateGherkinPrompt(prompt: string): Promise<string> {
  */
 export async function generateStepDefinitions(gherkinContent: string): Promise<string> {
     try {
-        console.log('🔄 Generating step definitions from AI...');
+        console.log('Generating step definitions from AI...');
         
-        const knowledgeBase = loadKnowledgeBase();  // ✅ Load existing steps
+        const knowledgeBase = loadKnowledgeBase();
         const existingSteps = Object.keys(knowledgeBase).map(step => `- ${step}`).join('\n');
         
         const aiPrompt = `Convert the following Gherkin scenarios into TypeScript Cucumber step definitions:
@@ -74,7 +74,7 @@ export async function generateStepDefinitions(gherkinContent: string): Promise<s
 
         console.log('Step definitions successfully generated.');
 
-        // ✅ Save new steps to the knowledge base
+        // Save new steps to the knowledge base
         stepDefinitions.split('\n').forEach(stepDef => {
             const match = stepDef.match(/(Given|When|Then)\('([^']+)'\,/);
             if (match) {

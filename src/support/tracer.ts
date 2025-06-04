@@ -6,7 +6,7 @@ let sdk: any;
 const isTracingEnabled = process.env.ENABLE_TRACING === 'true';
 
 async function initTelemetry() {
-  console.log('⏳ Initializing OpenTelemetry...');
+  console.log('Initializing OpenTelemetry...');
 
   const { NodeSDK } = await import('@opentelemetry/sdk-node');
   const { HttpInstrumentation } = await import('@opentelemetry/instrumentation-http');
@@ -31,7 +31,7 @@ async function initTelemetry() {
   });
 
   await sdk.start();
-  console.log('✅ OpenTelemetry initialized');
+  console.log('OpenTelemetry initialized');
 
   const span = tracer.startSpan('telemetry-initialization');
   span.setAttribute('status', 'successful');
@@ -40,7 +40,7 @@ async function initTelemetry() {
 
 if (isTracingEnabled) {
   initTelemetry().catch((err) => {
-    console.error('🚨 OpenTelemetry failed to initialize:', err);
+    console.error('OpenTelemetry failed to initialize:', err);
   });
 
   process.on('SIGTERM', () => {
@@ -48,7 +48,7 @@ if (isTracingEnabled) {
     shutdownTelemetry().finally(() => process.exit(0));
   });
 } else {
-  console.log('🚫 OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
+  console.log('OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
 }
 
 export async function shutdownTelemetry() {
@@ -59,14 +59,14 @@ export async function shutdownTelemetry() {
         sdk.shutdown(),
         new Promise<void>((resolve) =>
           setTimeout(() => {
-            console.warn('⚠️ OpenTelemetry shutdown timed out after 3s');
+            console.warn('OpenTelemetry shutdown timed out after 3s');
             resolve();
           }, 3000)
         ),
       ]);
-      console.log('✅ OpenTelemetry shutdown completed');
+      console.log('OpenTelemetry shutdown completed');
     } catch (err) {
-      console.warn('⚠️ OpenTelemetry shutdown error:', err);
+      console.warn('OpenTelemetry shutdown error:', err);
     }
   }
 }

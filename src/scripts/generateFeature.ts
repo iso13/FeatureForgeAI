@@ -145,7 +145,9 @@ async function generateFeatureFiles(featureTitle: string, userStory: string, sce
     // Optional: Warn if actual scenario count differs
     const actualScenarioCount = (gherkinContent.match(/^ *Scenario:/gm) || []).length;
     if (actualScenarioCount !== scenarioCount) {
-        console.warn(`⚠️ Expected ${scenarioCount} scenarios, but found ${actualScenarioCount} in the generated feature.`);
+
+        console.warn(`Expected ${scenarioCount} scenarios, but found ${actualScenarioCount} in the generated feature.`);
+
     }
 
     console.log('Generating TypeScript step definitions...');
