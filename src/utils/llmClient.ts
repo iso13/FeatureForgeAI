@@ -30,19 +30,21 @@ export async function generateSummaryLLM(
           messages: [
             {
               role: 'system',
-              content:
-                'You are a helpful assistant that summarizes documents. If none are relevant, ask the user to rephrase.',
+              content: `You are a helpful assistant summarizing context documents based on a user's query.
+If the documents are not relevant or if no answer can be derived confidently, respond with:
+"${fallback}".
+Do not make up or infer details not explicitly stated in the documents.`,
             },
             {
               role: 'user',
               content: `User query: ${query}\n\nContext:\n${context}`,
             },
           ],
-          temperature: 0.3,
+          temperature: 0.2, // Lower temperature to reduce hallucination risk
         });
 
         const summary = response?.choices?.[0]?.message?.content?.trim() || '';
-        const usedFallback = summary.length < 3;
+        const usedFallback = summary.toLowerCase().includes('rephrase') || summary.length < 3;
 
         if (usedFallback) span.addEvent('Fallback triggered');
 
@@ -57,6 +59,7 @@ export async function generateSummaryLLM(
       }
     }
 
+    // If mock provider
     const mockSummary = `Mock summary for "${query}" based on ${docs.length} documents.`;
     span.setAttribute('wasFallbackUsed', false);
     span.setAttribute('summaryLength', mockSummary.length);
