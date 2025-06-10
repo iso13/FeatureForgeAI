@@ -17,6 +17,6 @@
     "allowJs": true,
     "moduleDetection": "force"
   },
-  "include": ["scripts/**/*.ts", "src/**/*.ts", "*.ts"],
+  "include": ["scripts/**/*.ts", "src/**/*.ts", "*.ts", "src/steps/lighthouse.steps.mts"],
   "exclude": ["node_modules", "dist"]
 }

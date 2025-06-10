@@ -6,43 +6,35 @@
   "license": "MIT",
   "description": "Cucumber Playwright Automation Framework",
   "scripts": {
-  "lint": "npm run lint:ts && npm run lint:gherkin",
-  "lint:fix": "eslint 'src/**/*.ts' '*.ts' --fix",
-  "lint:ts": "eslint 'src/**/*.ts'",
-  "lint:gherkin": "npx tsc && node dist/scripts/gherkin-lint.js",
-
-  "clean:reports": "rm -rf reports && mkdir -p reports/screenshots reports/performance reports/a11y reports/cucumber reports/playwright reports/html",
-  "prepReport": "rimraf reports traces && mkdir -p reports/screenshots reports/accessibility",
-
-  "cucumber": "cucumber-js --config cucumber.mjs --format cucumber-console-formatter --require \"src/steps/**/*.ts\"",
-  "cucumber:dev": "npm run clean:reports && cross-env ENV=dev npm run cucumber && npm run report:generate",
-  "cucumber:staging": "npm run clean:reports && cross-env ENV=staging npm run cucumber",
-
-  "generate:feature": "ts-node src/scripts/generateFeature.ts",
-
-  "build": "npx tsc",
-  "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
-
-  "test": "cross-env ENV=qa npx playwright test",
-  "test:qa": "cross-env ENV=qa npx playwright test",
-  "test:dev": "cross-env ENV=dev npx playwright test",
-  "test:staging": "cross-env ENV=staging npx playwright test",
-  "codegen": "playwright codegen",
-
-  "report:generate": "npx multiple-cucumber-html-reporter --reportDir reports/html --jsonDir reports/cucumber --reportName 'Consolidated Test Report' --displayDuration true",
-  "report:open": "open reports/html/index.html",
-
-  "seed:weaviate": "ts-node src/scripts/seed-weaviate.ts",
-
-  "docker:up": "docker compose up -d",
-  "docker:down": "docker compose down",
-  "docker:restart": "docker compose restart",
-  "wait:prometheus": "npx wait-on http://localhost:9090",
-
-  "perf:test": "ENABLE_TRACING=true npm run cucumber -- --tags '@performanceTest'",
-  "perf:run": "npm run docker:up && npm run wait:prometheus && npm run perf:test",
-  "perf:full": "npm run docker:restart && npm run wait:prometheus && npm run perf:test"
-},
+    "lint": "npm run lint:ts && npm run lint:gherkin",
+    "lint:fix": "eslint 'src/**/*.ts' '*.ts' --fix",
+    "lint:ts": "eslint 'src/**/*.ts'",
+    "lint:gherkin": "npx tsc && node dist/scripts/gherkin-lint.js",
+    "clean:reports": "rm -rf reports && mkdir -p reports/screenshots reports/performance reports/a11y reports/cucumber reports/playwright reports/html",
+    "prepReport": "rimraf reports traces && mkdir -p reports/screenshots reports/accessibility",
+    "cucumber": "cucumber-js --config cucumber.mjs --format cucumber-console-formatter --require \"src/steps/**/*.ts\"",
+    "cucumber:dev": "npm run clean:reports && cross-env ENV=dev npm run cucumber && npm run report:generate",
+    "cucumber:staging": "npm run clean:reports && cross-env ENV=staging npm run cucumber",
+    "generate:feature": "ts-node src/scripts/generateFeature.ts",
+    "build": "npx tsc",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "test": "cross-env ENV=qa npx playwright test",
+    "test:qa": "cross-env ENV=qa npx playwright test",
+    "test:dev": "cross-env ENV=dev npx playwright test",
+    "test:staging": "cross-env ENV=staging npx playwright test",
+    "test:lighthouse": "NODE_OPTIONS='--loader ts-node/esm' cucumber-js --import 'src/steps/lighthouse.steps.mts' --tags @lightHouse",
+    "codegen": "playwright codegen",
+    "report:generate": "npx multiple-cucumber-html-reporter --reportDir reports/html --jsonDir reports/cucumber --reportName 'Consolidated Test Report' --displayDuration true",
+    "report:open": "open reports/html/index.html",
+    "seed:weaviate": "ts-node src/scripts/seed-weaviate.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:restart": "docker compose restart",
+    "wait:prometheus": "npx wait-on http://localhost:9090",
+    "perf:test": "ENABLE_TRACING=true npm run cucumber -- --tags '@performanceTest'",
+    "perf:run": "npm run docker:up && npm run wait:prometheus && npm run perf:test",
+    "perf:full": "npm run docker:restart && npm run wait:prometheus && npm run perf:test"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -85,7 +77,7 @@
     "@types/inquirer": "^9.0.7",
     "@types/jsonfile": "^6.1.4",
     "@types/lodash": "4.17.12",
-    "@types/node": "^22.8.1",
+    "@types/node": "^22.15.30",
     "@types/pixelmatch": "^5.2.6",
     "@types/pngjs": "^6.0.5",
     "@types/prettier": "3.0.0",
@@ -97,6 +89,7 @@
     "axe-playwright": "2.0.3",
     "axios": "1.7.7",
     "chai": "^4.5.0",
+    "chrome-launcher": "^1.2.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
     "eslint": "^9.13.0",
@@ -107,6 +100,7 @@
     "gherkin-lint": "^4.2.4",
     "husky": "^9.1.6",
     "is-ci": "3.0.1",
+    "lighthouse": "^12.6.1",
     "lint-staged": "^15.2.10",
     "open": "^10.1.2",
     "path": "^0.12.7",
@@ -123,7 +117,11 @@
     "wait-on": "^8.0.3"
   },
   "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix"],
-    "*.feature": ["npm run lint:gherkin"]
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.feature": [
+      "npm run lint:gherkin"
+    ]
   }
 }
