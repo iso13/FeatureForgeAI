@@ -8,7 +8,7 @@ Feature: Validate Accessibility
   #a11y reports are generated in /artifacts/acceessibilityReport.html
 
   Scenario: Validate a11y for a site
-    Given I go to the following "https://www.a11yproject.com/"
+    Given I go to the following "https://firefly.adobe.com/"
     When I run the a11y check
     Then I should not see any violations
 

@@ -2,8 +2,11 @@ import { Given, When, Then } from '@cucumber/cucumber';
 import { CustomWorld } from '../support/world';
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect } from '@playwright/test';
+import { createHtmlReport } from 'axe-html-reporter';
+import fs from 'fs';
+import path from 'path';
 
-Given('I go to the following {string}', async function(this: CustomWorld, url: string) {
+Given('I go to the following {string}', {timeout: 60_000}, async function(this: CustomWorld, url: string) {
   console.log(`Navigating to: ${url}`);
   
   if (!this.page) {
@@ -20,31 +23,37 @@ Given('I go to the following {string}', async function(this: CustomWorld, url: s
   }
 });
 
-When('I run the a11y check', async function(this: CustomWorld) {
-  console.log('🔍 Running accessibility check');
-  
+When('I run the a11y check', async function (this: CustomWorld) {
+  console.log('Running accessibility check');
+
   if (!this.page) {
-    console.error('Page object is undefined in a11y check');
     throw new Error('Page object is not available for accessibility testing');
   }
-  
+
   try {
-    // Use a type assertion to work around the compatibility issue
     const accessibilityScanResults = await new AxeBuilder({ page: this.page as any })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
       .analyze();
-    
-    // Store the results in the world object for later steps
+
     this.a11yResults = accessibilityScanResults;
-    console.log(`Accessibility scan completed with ${accessibilityScanResults.violations.length} violations`);
-    
-    // Log a summary of violations if any exist
-    if (accessibilityScanResults.violations.length > 0) {
-      console.log('Accessibility violations summary:');
-      accessibilityScanResults.violations.forEach((violation, index) => {
-        console.log(`   ${index + 1}. ${violation.id}: ${violation.description} (Impact: ${violation.impact})`);
-      });
-    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const reportDir = path.resolve('reports/accessibility');
+    const reportPath = path.join(reportDir, `a11y-report-${timestamp}.html`);
+
+    fs.mkdirSync(reportDir, { recursive: true });
+
+    const html = createHtmlReport({
+      results: accessibilityScanResults,
+      options: {
+        projectKey: 'cucumber-a11y',
+        customSummary: `Found ${accessibilityScanResults.violations.length} accessibility issues.`,
+      },
+    });
+
+    fs.writeFileSync(reportPath, html);
+
+    console.log(`Accessibility HTML report saved to: ${reportPath}`);
   } catch (error) {
     console.error('Error running accessibility check:', error);
     throw error;
@@ -52,7 +61,7 @@ When('I run the a11y check', async function(this: CustomWorld) {
 });
 
 Then('I should not see any violations', function(this: CustomWorld) {
-  console.log('🔍 Checking for accessibility violations');
+  console.log('Checking for accessibility violations');
   
   if (!this.a11yResults) {
     console.error('No accessibility results found');
