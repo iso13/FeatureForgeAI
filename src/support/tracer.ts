@@ -48,7 +48,7 @@ if (isTracingEnabled) {
     shutdownTelemetry().finally(() => process.exit(0));
   });
 } else {
-  console.log('OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
+  //console.log('OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
 }
 
 export async function shutdownTelemetry() {

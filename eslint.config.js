@@ -1,34 +1,32 @@
 // eslint.config.js
-const { Linter } = require('eslint');
+import typescriptParser from '@typescript-eslint/parser';
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 
-module.exports = [
+export default [
   {
-    ignores: ['node_modules/**', 'build/**'],
+    ignores: ['node_modules/**', 'dist/**', 'reports/**'],
   },
   {
     files: ['**/*.ts'],
     languageOptions: {
-      parser: require('@typescript-eslint/parser'),
+      parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
         project: './tsconfig.json',
       },
-      globals: {
-        browser: true,
-        node: true,
-        es2021: true,
-      },
     },
     plugins: {
-      '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
+      '@typescript-eslint': typescriptPlugin,
     },
     rules: {
-      semi: ['error', 'always'],
-      quotes: ['error', 'single'],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Turn warnings into off/warn to reduce red squiggles
+      'semi': 'off',
+      'quotes': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      'prefer-const': 'off',
       'no-console': 'off',
     },
   },

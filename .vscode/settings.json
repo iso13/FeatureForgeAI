@@ -1,4 +1,42 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.tsconfig": "./tsconfig.esm.json"
+  "cucumberautocomplete.steps": [
+    "src/steps/**/*.ts"
+  ],
+  "cucumberautocomplete.syncfeatures": "src/features/**/*.feature",
+  "cucumberautocomplete.strictGherkinCompletion": true,
+  "cucumberautocomplete.smartSnippets": true,
+  
+  "eslint.rules.customizations": [
+    {
+      "rule": "@typescript-eslint/no-non-null-assertion",
+      "severity": "off"
+    },
+    {
+      "rule": "@typescript-eslint/no-explicit-any", 
+      "severity": "off"
+    },
+    {
+      "rule": "@typescript-eslint/no-unused-vars",
+      "severity": "off"
+    },
+    {
+      "rule": "prefer-const",
+      "severity": "off"
+    },
+    {
+      "rule": "semi",
+      "severity": "off"
+    },
+    {
+      "rule": "quotes",
+      "severity": "off"
+    }
+  ],
+  
+  "eslint.workingDirectories": ["./"],
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ]
 }

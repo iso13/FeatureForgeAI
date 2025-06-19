@@ -2,6 +2,7 @@ import { Given, Then } from '@cucumber/cucumber';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { getDirName } from '../../utils/dirname.js';
 
 let testResult: string;
 
@@ -27,10 +28,11 @@ Given(
       fs.mkdirSync('reports/performance', { recursive: true });
     }
 
-    const loadTestPath = path.resolve(
-      __dirname,
-      '../../support/performance/loadTest.js'
-    );
+    const __dirname = getDirName(import.meta.url);
+
+const loadTestPath = path.resolve(
+  __dirname, '../../support/performance/loadTest.js'
+);
 
     if (!this.endpoint || !this.method) {
       throw new Error('Endpoint or HTTP method is not defined.');

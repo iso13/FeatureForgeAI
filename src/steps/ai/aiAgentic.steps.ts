@@ -10,10 +10,12 @@ import {
   retrySend,
 } from '../../ai/agenticCapitalCallHelper';
 import { withSpan } from '../../utils/traceHelper';
+import { getDirName } from '../../utils/dirname.js';
 
 Given('the AI can see investor records and fund agreements', async function (this: CustomWorld) {
   await withSpan('loadAgenticTestData', async () => {
-    const basePath = path.join(__dirname, '../../data/agentic');
+    const __dirname = getDirName(import.meta.url);
+const basePath = path.join(__dirname, '../../data/agentic');
     this.investors = JSON.parse(fs.readFileSync(path.join(basePath, 'investors.json'), 'utf-8')) || [];
     this.fundAgreements = JSON.parse(fs.readFileSync(path.join(basePath, 'fund_agreements.json'), 'utf-8')) || [];
     this.capitalCalls = JSON.parse(fs.readFileSync(path.join(basePath, 'capital_calls.json'), 'utf-8')) || [];

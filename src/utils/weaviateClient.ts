@@ -1,8 +1,28 @@
-//src/utils/weaviateClient.ts
+/**
+ * weaviateClient.ts
+ *
+ * Provides lifecycle utilities for interacting with a local or remote Weaviate instance.
+ * 
+ * This includes:
+ * - Creating the `Document` schema if it doesn't exist (with OpenAI vectorization support)
+ * - Importing internal documents into the vector database
+ * - Querying similar documents using semantic search (nearText)
+ * - Managing a singleton instance of the Weaviate client to avoid reconnects
+ * 
+ * Common BDD use cases:
+ * - Load internal documentation into a searchable format
+ * - Retrieve top-K relevant documents based on user prompts
+ * - Support LLM grounding and hallucination detection
+ * 
+ * Docker Usage:
+ * This assumes a local Weaviate instance is running in Docker on `localhost:8080`
+ * using the `text2vec-openai` module.
+ */
 
 import weaviate, { WeaviateClient } from 'weaviate-ts-client';
 import { Span } from '@opentelemetry/api';
 import { withSpan } from './traceHelper';
+import type { DocumentInput } from './injectIdsIntoDocs';
 
 let client: WeaviateClient;
 
@@ -40,6 +60,13 @@ export async function createSchemaIfNeeded(parentSpan?: Span): Promise<void> {
             },
           },
           properties: [
+            {
+              name: 'docId',
+              dataType: ['text'],
+              moduleConfig: { 'text2vec-openai': { skip: true } },
+              indexInverted: true,
+              description: 'A unique identifier for this document'
+            },
             { name: 'title', dataType: ['text'] },
             { name: 'body', dataType: ['text'] },
             { name: 'tags', dataType: ['text[]'] },
@@ -50,7 +77,7 @@ export async function createSchemaIfNeeded(parentSpan?: Span): Promise<void> {
   }, {}, parentSpan);
 }
 
-export async function importDocuments(docs: any[], parentSpan?: Span): Promise<void> {
+export async function importDocuments(docs: DocumentInput[], parentSpan?: Span): Promise<void> {
   const client = getWeaviateClient();
 
   await withSpan('importDocuments', async span => {
@@ -59,6 +86,7 @@ export async function importDocuments(docs: any[], parentSpan?: Span): Promise<v
         .creator()
         .withClassName('Document')
         .withProperties({
+          docId: doc.docId,
           title: doc.title,
           body: doc.body,
           tags: doc.tags,
@@ -77,7 +105,7 @@ export async function querySimilarDocs(query: string, topK = 3, parentSpan?: Spa
     const result = await client.graphql
       .get()
       .withClassName('Document')
-      .withFields('title body tags _additional {certainty}')
+      .withFields('docId title body tags _additional {certainty}')
       .withNearText({ concepts: [query] })
       .withLimit(topK)
       .do();
