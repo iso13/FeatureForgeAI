@@ -1,8 +1,8 @@
 @validateGrounding @no-browser
 Feature: Ensure AI Responses Are Accurate and Trustworthy
-As a user seeking help from AI,
-I want accurate answers based on real documentation,
-So that I can trust the information and solve my problem efficiently.
+  As a user seeking help from AI,
+  I want accurate answers based on real documentation,
+  So that I can trust the information and solve my problem efficiently.
 
   Background:
     Given our document system is ready
@@ -19,4 +19,4 @@ So that I can trust the information and solve my problem efficiently.
 
   Scenario: Summary should include relevant key phrases
     When I search for "recover username"
-    Then the AI summary should mention "username assistance" or "identity verification"
+    Then the AI summary should mention a keyword like "username assistance" or "identity verification"

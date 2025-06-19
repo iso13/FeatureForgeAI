@@ -1,13 +1,17 @@
 // Step Definition for Validate Correct Image Labeling for Cats and Dogs
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import * as tf from '@tensorflow/tfjs-node'; // Use tfjs-node for Node.js support
+import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import path from 'path';
+import { getDirName } from '../utils/dirname.js'; // use .js extension for ESM
 
 let model: tf.LayersModel;
-let predictions: { image: string; label: string }[];
-const KNOWN_IMAGES_DIR = path.resolve(__dirname, '../support/images/known');
+let predictions: { image: string; label: string }[] = [];
+
+const __dirname = getDirName(import.meta.url);
+const KNOWN_IMAGES_DIR = path.join(__dirname, '../support/images/known');
+
 const EXPECTED_LABELS = [
   { image: 'cat.jpg', label: 'cat' },
   { image: 'dog.jpg', label: 'dog' },
@@ -28,34 +32,22 @@ async function predictImageLabel(
   const imageBuffer = fs.readFileSync(imagePath);
   let imageTensor = tf.node.decodeImage(imageBuffer);
 
-  // Resize the image to match the model input [100, 100, 3]
+  // Resize to [100, 100, 3]
   imageTensor = tf.image.resizeBilinear(imageTensor, [100, 100]);
+  imageTensor = imageTensor.expandDims(0); // [1, 100, 100, 3]
 
-  // Expand dimensions to match model input [1, 100, 100, 3]
-  imageTensor = imageTensor.expandDims(0);
-
-  // Make a prediction using the model
   const predictionTensor = model.predict(imageTensor) as tf.Tensor;
-
-  // Convert the prediction tensor to an array
   const predictionArray = predictionTensor.dataSync();
-
-  // Find the index of the highest prediction value
   const predictedIndex = predictionArray.indexOf(Math.max(...predictionArray));
 
-  // Assuming the model was trained to classify 'cat' and 'dog'
   const LABELS = ['cat', 'dog'];
-
-  // Return the predicted label
   return LABELS[predictedIndex];
 }
 
-// Load the pre-trained image classification model
 Given('a pre-trained image classification model for identifying cats and dogs is loaded', async () => {
   model = await loadImageClassificationModel();
 });
 
-// Input a set of known images and make predictions
 When('I input a set of images containing cats and dogs', async () => {
   predictions = [];
   for (const { image } of EXPECTED_LABELS) {
@@ -65,28 +57,23 @@ When('I input a set of images containing cats and dogs', async () => {
   }
 });
 
-// Check if the predicted labels match the expected labels with a certain accuracy
 Then(
   'each image should be correctly labeled as {string} or {string} with at least {int}% accuracy',
   (label1: string, label2: string, accuracyThreshold: number) => {
     let correctPredictions = 0;
     for (const { image, label } of predictions) {
-      const expectedLabel = EXPECTED_LABELS.find(
-        (el) => el.image === image,
-      )?.label;
-      if (expectedLabel && expectedLabel === label) {
+      const expectedLabel = EXPECTED_LABELS.find((el) => el.image === image)?.label;
+      if (expectedLabel === label) {
         correctPredictions++;
       }
     }
+
     const accuracy = (correctPredictions / EXPECTED_LABELS.length) * 100;
     console.log('Predictions:', predictions);
     console.log(`Accuracy: ${accuracy}%`);
 
-    // Validation of labels
     expect([label1, label2]).toContain('cat');
     expect([label1, label2]).toContain('dog');
-
-    // Accuracy assertion
     expect(accuracy >= accuracyThreshold).toBe(true);
   },
 );

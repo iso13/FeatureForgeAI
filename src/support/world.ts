@@ -2,18 +2,22 @@ import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
 import {
   Browser,
   BrowserContext,
-  BrowserContextOptions,
   Page,
-  chromium
+  chromium,
+  LaunchOptions,
+  BrowserContextOptions,
 } from 'playwright';
 import { Span } from '@opentelemetry/api';
 import { CapitalCallAgent } from '../ai/agentTester';
 import { RAGEngine } from '../ai/ragHelper';
+import { BasePage } from '../pages/basePage';
+import { DefaultPage } from '../pages/defaultPage';
 
 export interface CustomWorld extends World {
-  browser?: Browser;
-  context?: BrowserContext;
-  page?: Page;
+  browser: Browser;
+  context: BrowserContext;
+  page: Page;
+  basePage: BasePage;
   testSpan?: Span;
   stepSpan?: Span;
   scenarioName: string;
@@ -23,8 +27,7 @@ export interface CustomWorld extends World {
   a11yResults?: any;
   lastSummaryOutput?: string;
 
-  launchBrowser(contextOptions?: BrowserContextOptions): Promise<void>;
-
+  launchBrowser(options?: LaunchOptions & BrowserContextOptions): Promise<void>;
 
   // Agentic AI fields
   agent?: CapitalCallAgent;
@@ -46,9 +49,10 @@ export interface CustomWorld extends World {
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
-  browser?: Browser;
-  context?: BrowserContext;
-  page?: Page;
+  browser!: Browser;
+  context!: BrowserContext;
+  page!: Page;
+  basePage!: BasePage;
   testSpan?: Span;
   stepSpan?: Span;
   scenarioName: string = '';
@@ -56,12 +60,12 @@ class PlaywrightWorld extends World implements CustomWorld {
   pickle: any;
   a11yResults?: any;
 
-  // Agentic AI
+  // Agentic AI fields
   agent?: CapitalCallAgent;
   workflowSteps?: any;
   error?: any;
 
-  // RAG
+  // RAG testing fields
   rag?: RAGEngine;
   summary: string = '';
   retrievedDocs?: any[] = [];
@@ -78,19 +82,21 @@ class PlaywrightWorld extends World implements CustomWorld {
     super(options);
   }
 
-  async launchBrowser(contextOptions: BrowserContextOptions = {}): Promise<void> {
-  const { headless = true, ...rest } = contextOptions as any; // <-- safely destructure
-  
-  try {
-    this.browser = await chromium.launch({ headless });
-    this.context = await this.browser.newContext(rest);
-    this.page = await this.context.newPage();
-    console.log(`Browser launched successfully (headless: ${headless}), page created`);
-  } catch (error) {
-    console.error('Failed to launch browser:', error);
-    throw error;
+  async launchBrowser(options: LaunchOptions & BrowserContextOptions = {}): Promise<void> {
+    const { headless = true, ...contextOptions } = options;
+
+    try {
+      this.browser = await chromium.launch({ headless });
+      this.context = await this.browser.newContext(contextOptions);
+      this.page = await this.context.newPage();
+
+      // Initialize basePage using DefaultPage wrapper
+      this.basePage = new DefaultPage(this.page);
+    } catch (error) {
+      console.error('Failed to launch browser:', error);
+      throw error;
+    }
   }
-}
 }
 
 setWorldConstructor(PlaywrightWorld);

@@ -4,6 +4,7 @@ import * as tracerModule from './tracer';
 import * as path from 'path';
 import * as fs from 'fs';
 import { setDefaultTimeout } from '@cucumber/cucumber';
+import { format } from 'date-fns';
 
 // Set default timeout
 setDefaultTimeout(10_000);
@@ -101,49 +102,59 @@ BeforeStep(function (this: CustomWorld, step) {
     }
 });
 
-AfterStep(function (this: CustomWorld, step) {
-    const stepText = step.pickleStep.text;
-    if (isVerbose) console.log(`Completed step: ${stepText}`);
-
+AfterStep(function (this: CustomWorld) {
     try {
-        if (this.stepSpan) {
-            if (step.result?.status === Status.FAILED) {
-                this.stepSpan.setAttribute('error', true);
-                this.stepSpan.setAttribute('error.message', step.result.message || 'Step failed');
-                this.stepSpan.setStatus({ code: 2, message: 'Step Failed' });
-            }
-            this.stepSpan.end();
-            if (isVerbose) console.log('✓ Ended step span');
-        }
+        this.stepSpan?.end();
+        if (isVerbose) console.log('✓ Step span ended');
     } catch (err) {
         console.warn('Failed to end step span:', err);
     }
 });
 
 After(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
-  if (this.page && this.page.video && isVideoEnabled) {
-    try {
-      console.log('Waiting before closing page to extend video recording...');
-      await this.page.waitForTimeout(3000);
+    const isFailed = scenario.result?.status === Status.FAILED;
 
-      const videoHandle = this.page.video();
-      await this.page.close();
+    if (isFailed && this.page) {
+        const timestamp = format(new Date(), 'yyyyMMdd-HHmmss');
+        const feature = this.featureName?.replace(/\s+/g, '_') || 'UnknownFeature';
+        const scenarioName = this.scenarioName?.replace(/\s+/g, '_') || 'UnknownScenario';
+        const screenshotName = `${feature}_${scenarioName}_${timestamp}.png`;
+        const screenshotPath = path.join('reports/screenshots', screenshotName);
 
-      const videoPath = await videoHandle?.path();
+        try {
+            await fs.promises.mkdir(path.dirname(screenshotPath), { recursive: true });
+            await this.page.screenshot({ path: screenshotPath, fullPage: true });
+            console.log(`Screenshot saved to: ${screenshotPath}`);
 
-      if (videoPath) {
-        console.log(`Raw video path: ${videoPath}`);
-        const destPath = path.join('reports/videos', path.basename(videoPath));
-        await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
-        await fs.promises.copyFile(videoPath, destPath);
-        console.log(`Video saved to: ${destPath}`);
-      } else {
-        console.warn('No video path returned');
-      }
-    } catch (err) {
-      console.error('Error retrieving video:', err);
+            const imageBuffer = await fs.promises.readFile(screenshotPath);
+            const base64Image = imageBuffer.toString('base64');
+            this.attach(base64Image, 'image/png');
+        } catch (err) {
+            console.error('Failed to capture or attach screenshot:', err);
+        }
     }
-  }
+
+    if (this.page && this.page.video && isVideoEnabled) {
+        try {
+            console.log('Waiting before closing page to extend video recording...');
+            await this.page.waitForTimeout(3000);
+
+            const videoHandle = this.page.video();
+            await this.page.close();
+
+            const videoPath = await videoHandle?.path();
+            if (videoPath) {
+                const destPath = path.join('reports/videos', path.basename(videoPath));
+                await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+                await fs.promises.copyFile(videoPath, destPath);
+                console.log(`Video saved to: ${destPath}`);
+            } else {
+                console.warn('No video path returned');
+            }
+        } catch (err) {
+            console.error('Failed to retrieve video:', err);
+        }
+    }
 });
 
 AfterAll(async function () {

@@ -10,16 +10,16 @@ export function validateStructure(obj: any, requiredFields: string[]): void {
 }
 
 const ACCEPTABLE_FALLBACKS = [
-  "i'm not sure",
-  "no relevant",
-  "couldn't find",
-  "please try again",
-  "try a different question",
-  "no useful information",
-  "nothing relevant",
-  "no results",
-  "i don’t know",
-  "sorry"
+  'i\'m not sure',
+  'no relevant',
+  'couldn\'t find',
+  'please try again',
+  'try a different question',
+  'no useful information',
+  'nothing relevant',
+  'no results',
+  'i don’t know',
+  'sorry'
 ];
 
 export function checkForHallucinations(text: string, allowedEntities: string[]): void {
@@ -97,7 +97,7 @@ export function assertSummaryMentions(summary: string, expectedPhrases: string[]
 
   if (!match) {
     throw new Error(
-      `Summary does not contain any of the expected phrases.\n` +
+      'Summary does not contain any of the expected phrases.\n' +
       `Expected one of: ${expectedPhrases.join(', ')}\n` +
       `Actual summary: "${summary}"`
     );

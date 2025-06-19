@@ -1,22 +1,70 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "module": "CommonJS",
+    "module": "ESNext",
     "lib": ["DOM", "ES2021"],
-    "sourceMap": false,
-    "declaration": false,
-    "strict": true,
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "isolatedModules": false,
-    "skipLibCheck": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strict": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "allowJs": true,
-    "moduleDetection": "force"
+    "rootDir": ".",
+    "sourceMap": false,
+    "declaration": false,
+    "allowJs": false,
+    "moduleDetection": "force",
+    
+    // Additional recommendations for your project
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+    "verbatimModuleSyntax": false,
+    
+    // Helpful for debugging
+    "preserveConstEnums": true,
+    "removeComments": false,
+    
+    // Type checking enhancements
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": false,
+    
+    // Path mapping for cleaner imports (optional)
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@scripts/*": ["src/scripts/*"],
+      "@features/*": ["src/features/*"],
+      "@steps/*": ["src/steps/*"],
+      "@support/*": ["src/support/*"]
+    }
   },
-  "include": ["scripts/**/*.ts", "src/**/*.ts", "*.ts", "src/steps/lighthouse.steps.mts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.mts",
+    "scripts/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "reports",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  
+  // ts-node configuration for ESM
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node",
+    "transpileOnly": true
+  }
 }

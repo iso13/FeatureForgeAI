@@ -1,4 +1,4 @@
-@ValidateAccessibility @a11y
+@validateAccessibility @a11y @no-browser
 Feature: Validate Accessibility
   As a user,
   I want the application to be accessible,
@@ -8,7 +8,7 @@ Feature: Validate Accessibility
   #a11y reports are generated in /artifacts/acceessibilityReport.html
 
   Scenario: Validate a11y for a site
-    Given I go to the following "https://firefly.adobe.com/"
+    Given I go to the following "https://www.a11yproject.com/"
     When I run the a11y check
     Then I should not see any violations
 

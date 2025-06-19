@@ -50,6 +50,6 @@ Given('I run a Lighthouse audit on {string}', { timeout: 60_000 }, async functio
 
 Then('the performance score should be above {int}', function (minScore: number) {
   const score = Math.round(lighthouseReport.categories.performance.score * 100);
-  console.log(`📊 Lighthouse Performance Score: ${score}`);
+  console.log(`Lighthouse Performance Score: ${score}`);
   assert(score >= minScore, `Expected score >= ${minScore}, but got ${score}`);
 });
