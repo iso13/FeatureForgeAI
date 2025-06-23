@@ -1,6 +1,6 @@
 // src/pages/defaultPage.ts
-import { Page } from 'playwright';
-import { BasePage } from './basePage';
+import type { Page } from 'playwright';
+import { BasePage } from './BasePage';
 
 export class DefaultPage extends BasePage {
   constructor(page: Page) {

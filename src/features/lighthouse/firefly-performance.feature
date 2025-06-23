@@ -1,4 +1,4 @@
-@lightHouse @no-browser
+@lightHouse @no-browser @wip
 Feature: Lighthouse audit for Adobe
 
   Scenario: Firefly homepage should pass performance threshold

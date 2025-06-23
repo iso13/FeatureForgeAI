@@ -1,6 +1,6 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { CustomWorld } from '../support/world.js';
+import type { CustomWorld } from '../support/world.js';
 
 Given('the user opens the model viewer page', async function (this: CustomWorld) {
   await this.page!.goto('https://modelviewer.dev/examples/augmentedreality/');

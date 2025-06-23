@@ -1,27 +1,49 @@
-// src/pages/loginPage.ts
-import { Page } from 'playwright';
-import { BasePage } from './basePage';
+import type { Page } from 'playwright';
 
-export class LoginPage extends BasePage {
-  readonly emailInput = this.page.locator('[data-testid="email-input"]');
-  readonly passwordInput = this.page.locator('[data-testid="password-input"]');
-  readonly loginButton = this.page.locator('[data-testid="login-button"]');
-
-  constructor(page: Page) {
-    super(page);
-  }
-
-  getUrl(): string {
-    return `${process.env.FEATUREGEN_URL}/auth`;
-  }
+export class LoginPage {
+  constructor(private page: Page) { }
 
   async goto(): Promise<void> {
-    await this.page.goto(this.getUrl());
+    await this.page.goto('https://your-app-url.com/login');
+  }
+
+  async clickForgotPassword(): Promise<void> {
+    await this.page.click('text=Forgot password');
+  }
+
+  async enterEmail(email: string): Promise<void> {
+    await this.page.fill('input[type="email"]', email);
+  }
+
+  async clickResetPassword(): Promise<void> {
+    await this.page.click('text=Reset password');
+  }
+
+  async enterNewPassword(password: string): Promise<void> {
+    await this.page.fill('input[name="newPassword"]', password);
+  }
+
+  async confirmNewPassword(password: string): Promise<void> {
+    await this.page.fill('input[name="confirmPassword"]', password);
+  }
+
+  async clickChangePassword(): Promise<void> {
+    await this.page.click('text=Change password');
+  }
+
+  async getConfirmationMessage(): Promise<string> {
+    const message = await this.page.textContent('.confirmation-message');
+    if (!message) throw new Error('Confirmation message not found');
+    return message;
   }
 
   async login(email: string, password: string): Promise<void> {
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
-    await this.loginButton.click();
+    await this.page.fill('input[type="email"]', email);
+    await this.page.fill('input[type="password"]', password);
+    await this.page.click('text=Login');
+  }
+
+  async isLoggedIn(): Promise<boolean> {
+    return await this.page.isVisible('text=Welcome') || this.page.url().includes('/dashboard');
   }
 }

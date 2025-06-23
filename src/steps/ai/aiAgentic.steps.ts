@@ -2,7 +2,7 @@ import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
-import { CustomWorld } from '../../support/world';
+import type { CustomWorld } from '../../support/world';
 import {
   generateCapitalCallSummary,
   validateCompliance,

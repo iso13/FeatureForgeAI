@@ -1,3 +1,5 @@
+// src/support/tracer.ts
+
 import { trace } from '@opentelemetry/api';
 
 export const tracer = trace.getTracer('cucumber-playwright');
@@ -31,24 +33,13 @@ async function initTelemetry() {
   });
 
   await sdk.start();
+  trace.setGlobalTracerProvider(sdk.getTracerProvider());
+
   console.log('OpenTelemetry initialized');
 
   const span = tracer.startSpan('telemetry-initialization');
   span.setAttribute('status', 'successful');
   span.end();
-}
-
-if (isTracingEnabled) {
-  initTelemetry().catch((err) => {
-    console.error('OpenTelemetry failed to initialize:', err);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, shutting down…');
-    shutdownTelemetry().finally(() => process.exit(0));
-  });
-} else {
-  //console.log('OpenTelemetry is disabled (ENABLE_TRACING not set to true)');
 }
 
 export async function shutdownTelemetry() {
@@ -69,4 +60,16 @@ export async function shutdownTelemetry() {
       console.warn('OpenTelemetry shutdown error:', err);
     }
   }
+}
+
+if (isTracingEnabled) {
+  initTelemetry().catch((err) => {
+    console.error('OpenTelemetry failed to initialize:', err);
+  });
+
+  process.on('SIGTERM', async () => {
+    console.log('Received SIGTERM, shutting down…');
+    await shutdownTelemetry();
+    process.exit(0);
+  });
 }

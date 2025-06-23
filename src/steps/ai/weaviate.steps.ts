@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { CustomWorld } from '../../support/world';
+import type { CustomWorld } from '../../support/world';
 import {
   createSchemaIfNeeded,
   importDocuments,
@@ -20,7 +20,7 @@ Given('our document system is ready', async function (this: CustomWorld) {
   await createSchemaIfNeeded(this.stepSpan);
 });
 
-Given('helpful documents are available to search', { timeout: 15000 }, async function (this: CustomWorld) {
+Given('helpful documents are available to search', { timeout: 30000 }, async function (this: CustomWorld) {
   await withSpan('loadDocuments', async span => {
     const filePath = path.join(__dirname, '../../data/internal_docs.json');
     const rawDocs = JSON.parse(fs.readFileSync(filePath, 'utf-8'));

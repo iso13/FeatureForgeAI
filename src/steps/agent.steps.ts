@@ -1,7 +1,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from 'chai';
 import { CapitalCallAgent } from '../ai/agentTester';
-import { CustomWorld } from '../support/world';
+import type { CustomWorld } from '../support/world';
 
 Given('the AI agent has access to investor records and fund agreements', function (this: CustomWorld) {
   this.agent = new CapitalCallAgent();

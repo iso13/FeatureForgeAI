@@ -1,4 +1,5 @@
-import { trace, Span, SpanStatusCode, context, ROOT_CONTEXT } from '@opentelemetry/api';
+import { trace, SpanStatusCode, context, ROOT_CONTEXT } from '@opentelemetry/api';
+import type { Span } from '@opentelemetry/api';
 
 const tracer = trace.getTracer('cucumber-playwright');
 

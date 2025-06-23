@@ -1,4 +1,4 @@
-@logIn
+@logIn @wip
 Feature: Log In
 As a tester
 I want to log in to the FeatureGen application

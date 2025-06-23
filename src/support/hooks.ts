@@ -1,5 +1,6 @@
-import { Before, After, BeforeStep, AfterStep, Status, AfterAll, ITestCaseHookParameter } from '@cucumber/cucumber';
-import { CustomWorld } from './world';
+import { Before, After, BeforeStep, AfterStep, Status, AfterAll } from '@cucumber/cucumber';
+import type { ITestCaseHookParameter } from '@cucumber/cucumber';
+import type { CustomWorld } from './world';
 import * as tracerModule from './tracer';
 import * as path from 'path';
 import * as fs from 'fs';

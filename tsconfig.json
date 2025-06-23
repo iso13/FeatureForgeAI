@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES2022",
     "module": "ESNext",
-    "lib": ["DOM", "ES2021"],
-    "moduleResolution": "Node",
+    "lib": ["DOM", "ES2022"],
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -18,14 +18,14 @@
     "allowJs": false,
     "moduleDetection": "force",
     
-    // Additional recommendations for your project
+    // Helpful enhancements
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": true,
     
-    // Helpful for debugging
+    // Debugging / dev hints
     "preserveConstEnums": true,
     "removeComments": false,
     
@@ -35,8 +35,8 @@
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "useUnknownInCatchVariables": false,
-    
-    // Path mapping for cleaner imports (optional)
+
+    // Path aliases
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -60,8 +60,6 @@
     "**/*.spec.ts",
     "**/*.test.ts"
   ],
-  
-  // ts-node configuration for ESM
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",

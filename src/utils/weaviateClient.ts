@@ -19,10 +19,14 @@
  * using the `text2vec-openai` module.
  */
 
-import weaviate, { WeaviateClient } from 'weaviate-ts-client';
-import { Span } from '@opentelemetry/api';
+import weaviate from 'weaviate-ts-client';
+import type { WeaviateClient } from 'weaviate-ts-client';
+import type { Span } from '@opentelemetry/api';
 import { withSpan } from './traceHelper';
 import type { DocumentInput } from './injectIdsIntoDocs';
+
+// ✅ Legacy compat: ensure Weaviate gets OPENAI_APIKEY if OPENAI_API_KEY is set
+process.env.OPENAI_APIKEY ??= process.env.OPENAI_API_KEY;
 
 let client: WeaviateClient;
 
@@ -30,7 +34,7 @@ export function getWeaviateClient(): WeaviateClient {
   if (!client) {
     client = weaviate.client({
       scheme: 'http',
-      host: 'localhost:8080', // Ensure this matches Docker or Weaviate setup
+      host: 'localhost:8080',
     });
   }
   return client;

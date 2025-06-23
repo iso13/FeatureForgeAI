@@ -3,7 +3,7 @@ dotenv.config();
 
 import OpenAI from 'openai';
 import { withSpan } from './traceHelper';
-import { Span } from '@opentelemetry/api';
+import type { Span } from '@opentelemetry/api';
 
 const apiKey = process.env.OPENAI_API_KEY;
 const provider = process.env.LLM_PROVIDER || 'mock';

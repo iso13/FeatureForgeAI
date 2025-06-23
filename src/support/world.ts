@@ -1,16 +1,17 @@
-import { setWorldConstructor, World, IWorldOptions } from '@cucumber/cucumber';
-import {
+import { setWorldConstructor, World } from '@cucumber/cucumber';
+import type { IWorldOptions } from '@cucumber/cucumber';
+import type {
   Browser,
   BrowserContext,
   Page,
-  chromium,
   LaunchOptions,
   BrowserContextOptions,
 } from 'playwright';
-import { Span } from '@opentelemetry/api';
+import type { Span } from '@opentelemetry/api';
+
 import { CapitalCallAgent } from '../ai/agentTester';
 import { RAGEngine } from '../ai/ragHelper';
-import { BasePage } from '../pages/basePage';
+import { BasePage } from '../pages/BasePage';
 import { DefaultPage } from '../pages/defaultPage';
 
 export interface CustomWorld extends World {
@@ -26,6 +27,10 @@ export interface CustomWorld extends World {
   pickle: any;
   a11yResults?: any;
   lastSummaryOutput?: string;
+
+  email?: string;
+  resetLink?: string;
+  newPassword?: string;
 
   launchBrowser(options?: LaunchOptions & BrowserContextOptions): Promise<void>;
 
@@ -59,6 +64,11 @@ class PlaywrightWorld extends World implements CustomWorld {
   featureName: string = '';
   pickle: any;
   a11yResults?: any;
+  lastSummaryOutput?: string;
+
+  email: string = '';
+  resetLink: string = '';
+  newPassword: string = '';
 
   // Agentic AI fields
   agent?: CapitalCallAgent;
@@ -86,11 +96,10 @@ class PlaywrightWorld extends World implements CustomWorld {
     const { headless = true, ...contextOptions } = options;
 
     try {
+      const { chromium } = await import('playwright'); // runtime import to avoid ESM issues
       this.browser = await chromium.launch({ headless });
       this.context = await this.browser.newContext(contextOptions);
       this.page = await this.context.newPage();
-
-      // Initialize basePage using DefaultPage wrapper
       this.basePage = new DefaultPage(this.page);
     } catch (error) {
       console.error('Failed to launch browser:', error);

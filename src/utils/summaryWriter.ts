@@ -1,7 +1,7 @@
 //src/utils/summaryWriter.ts
 import fs from 'fs';
 import path from 'path';
-import { Span } from '@opentelemetry/api';
+import type { Span } from '@opentelemetry/api';
 import { withSpan } from './traceHelper';
 
 /**

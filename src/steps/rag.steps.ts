@@ -1,8 +1,9 @@
 // src/steps/rag.steps.ts
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from 'chai';
-import { RAGEngine, Clause } from '../ai/ragHelper';
-import { CustomWorld } from '../support/world';
+import { RAGEngine } from '../ai/ragHelper';
+import type{ Clause } from '../ai/ragHelper';
+import type { CustomWorld } from '../support/world';
 
 const clauseSet: Clause[] = [
   { id: 'C001', type: 'confidentiality', content: 'This contract includes a confidentiality clause.' },

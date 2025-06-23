@@ -1,5 +1,5 @@
 import { Given } from '@cucumber/cucumber';
-import { CustomWorld } from '../support/world';
+import type { CustomWorld } from '../support/world';
 import { environments } from '../support/environments';
 
 Given('I navigate to homepage', async function (this: CustomWorld) {

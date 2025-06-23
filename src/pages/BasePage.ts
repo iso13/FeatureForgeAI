@@ -1,4 +1,4 @@
-import { Page, Locator } from 'playwright';
+import type { Page, Locator } from 'playwright';
 
 export abstract class BasePage {
   protected readonly page: Page;

@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import { CustomWorld } from '../support/world';
+import type { CustomWorld } from '../support/world';
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect } from '@playwright/test';
 import { createHtmlReport } from 'axe-html-reporter';

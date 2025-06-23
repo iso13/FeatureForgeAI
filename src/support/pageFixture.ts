@@ -1,6 +1,6 @@
 // src/support/pageFixture.ts
-import { Browser, BrowserContext, Page, chromium } from 'playwright';
-
+import type { Browser, BrowserContext, Page } from 'playwright';
+import {chromium} from 'playwright';
 class PageFixture {
   browser: Browser | undefined;
   context: BrowserContext | undefined;
