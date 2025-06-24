@@ -22,39 +22,51 @@ const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
 console.log('Starting Feature & Step Definition Generation...');
 
 function enforceDeclarativeSteps(content: string): string {
-  return content
-    // Standardize quote usage - convert single quotes to double quotes
+  let transformed = content
+    // Standardize quote usage
     .replace(/When I click on the '([^']+)'/gi, 'When I click on the "$1"')
     .replace(/Then I should see a '([^']+)'/gi, 'Then I should see a "$1"')
     .replace(/And I click on the '([^']+)'/gi, 'And I click on the "$1"')
-    
-    // Fix vague parameterization
-    .replace(/When I enter a keyword in the search bar/gi, 'When I enter "nature" in the search bar')
-    .replace(/Then I should see a list of images related to the keyword/gi, 'Then I should see images related to "nature"')
-    
-    // Fix Given statements in scenarios when Background exists
-    .replace(/(Background:[\s\S]*?Scenario:[^\n]*\n)(\s*)Given I am on the ([^n]+) page/gm, 
-             '$1$2When I navigate to the $3 page')
-    .replace(/(Background:[\s\S]*?Scenario:[^\n]*\n[\s\S]*?)(\s*)Given I am on the ([^n]+) page/gm, 
-             '$1$2When I navigate to the $3 page')
-    
-    // Declarative step transformations
+
+    // Declarative language corrections
     .replace(/When I go to the "(.*?)" page/gi, 'Given the "$1" page is displayed')
     .replace(/And I fill in the "(.*?)" with "(.*?)"/gi, 'When the user provides "$2" for "$1"')
     .replace(/And I click on the "(.*?)" button/gi, 'When the user submits the "$1" action')
     .replace(/Then I should see a confirmation message "(.*?)"/gi, 'Then a confirmation message "$1" should be displayed')
     .replace(/Then I should see an error message "(.*?)"/gi, 'Then an error message "$1" should be displayed')
-    
-    // Fix inconsistent step language
-    .replace(/When I click on the "(.*?)" tab/gi, 'When I click on the "$1" tab')
-    .replace(/When I click on the "(.*?)" button/gi, 'When I click on the "$1" button')
-    
-    // Add specific examples for better step definitions
+
+    // Parameter consistency
+    .replace(/When I enter a keyword in the search bar/gi, 'When I enter "nature" in the search bar')
+    .replace(/Then I should see a list of images related to the keyword/gi, 'Then I should see images related to "nature"')
+
+    // Replace background-duplicated Givens in scenarios
+    .replace(/(Background:[\s\S]+?)((?:\n\s*Scenario:[\s\S]+?)(?=\n\s*Scenario:|\n*$))/g, (_, background, scenarios) => {
+      return background + scenarios.replace(/^\s*Given\s+/gm, 'When ');
+    })
+
+    .replace(/(Background:[\s\S]*?Scenario:[^\n]*\n[\s\S]*?)(\s*)Given I am on the ([^n]+) page/gm,
+      '$1$2When I navigate to the $3 page')
+
+    // Clarify incomplete descriptions
     .replace(/Given I am viewing an image in the featured gallery/gi, 'Given I am viewing the first image in the featured gallery')
-    .replace(/When I click on the "(.*?)" button/gi, 'When I click on the "$1" button')
-    
-    // Fix confirmation message format
+
+    // Confirmation message improvement
     .replace(/And I should see a confirmation message of the successful addition/gi, 'Then a confirmation message "Image saved successfully" should be displayed');
+
+  // 🧠 Rule enforcement: Warn on multiple When→Then chains
+  const scenarioRegex = /(Scenario:.*?)(?=\nScenario:|\n*$)/gs;
+  let match: RegExpExecArray | null;
+  while ((match = scenarioRegex.exec(transformed)) !== null) {
+    const block = match[1];
+    const whenCount = (block.match(/^\s*When\b/gm) || []).length;
+    const thenCount = (block.match(/^\s*Then\b/gm) || []).length;
+
+    if (whenCount > 1 && thenCount > 1) {
+      console.warn(`⚠️ Detected multiple When→Then pairs in:\n  → ${block.split('\n')[0]}`);
+    }
+  }
+
+  return transformed;
 }
 
 async function generateGherkinPrompt(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
@@ -139,14 +151,14 @@ function improveStepDefinitions(content: string): string {
 function finalCleanup(content: string): string {
   return content
     // Remove duplicate waitForLoadState calls
-    .replace(/await this\.page\.waitForLoadState\([^)]+\);\s*await this\.page\.waitForLoadState\([^)]+\);/g, 
-             'await this.page.waitForLoadState("networkidle");')
+    .replace(/await this\.page\.waitForLoadState\([^)]+\);\s*await this\.page\.waitForLoadState\([^)]+\);/g,
+      'await this.page.waitForLoadState("networkidle");')
     // Fix incomplete login comments
-    .replace(/\/\/ handle login flow/g, 
-             'await this.page.click(loginButton);\n      // TODO: Add username/password input logic')
+    .replace(/\/\/ handle login flow/g,
+      'await this.page.click(loginButton);\n      // TODO: Add username/password input logic')
     // Fix error handling - use throw new Error instead of console.error
-    .replace(/console\.error\(`([^`]+): \$\{error\}`\);/g, 
-             'throw new Error(`$1: ${error}`);');
+    .replace(/console\.error\(`([^`]+): \$\{error\}`\);/g,
+      'throw new Error(`$1: ${error}`);');
 }
 
 async function generateStepDefinitions(gherkinContent: string): Promise<string> {
@@ -195,9 +207,9 @@ Generate complete, production-ready TypeScript step definitions with proper erro
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4',
-      messages: [{ 
-        role: 'user', 
-        content: `${selectorExamples}\n\n${prompt}` 
+      messages: [{
+        role: 'user',
+        content: `${selectorExamples}\n\n${prompt}`
       }],
       temperature: 0.1, // Lower temperature for more consistent code generation
       max_tokens: 3000, // Increased for more comprehensive output
@@ -257,7 +269,7 @@ function validateStepCoverage(gherkinContent: string, stepDefinitions: string): 
   const stepRegex = /^\s*(Given|When|Then|And|But)\s+(.+)$/gm;
   const gherkinSteps: string[] = [];
   let match: RegExpExecArray | null;
-  
+
   while ((match = stepRegex.exec(gherkinContent)) !== null) {
     const stepText = match[2].trim();
     // Skip background steps and normalize step text
@@ -269,15 +281,15 @@ function validateStepCoverage(gherkinContent: string, stepDefinitions: string): 
   // Extract step definitions from generated code
   const stepDefRegex = /(Given|When|Then)\('([^']+)'/g;
   const generatedSteps: string[] = [];
-  
+
   while ((match = stepDefRegex.exec(stepDefinitions)) !== null) {
     generatedSteps.push(match[2]);
   }
 
   // Find missing steps
   const missingSteps: string[] = gherkinSteps.filter(gherkinStep => {
-    return !generatedSteps.some(genStep => 
-      gherkinStep.toLowerCase().includes(genStep.toLowerCase()) || 
+    return !generatedSteps.some(genStep =>
+      gherkinStep.toLowerCase().includes(genStep.toLowerCase()) ||
       genStep.toLowerCase().includes(gherkinStep.toLowerCase())
     );
   });
@@ -294,7 +306,7 @@ function validateStepCoverage(gherkinContent: string, stepDefinitions: string): 
 async function generateFeatureFiles(featureTitle: string, userStory: string, scenarioCount: number) {
   console.log('Requesting OpenAI for feature generation...');
   const rawGherkinContent = await generateGherkinPrompt(featureTitle, userStory, scenarioCount);
-  
+
   // Apply declarative step improvements to the content before saving
   const cleanedGherkinContent = enforceDeclarativeSteps(rawGherkinContent);
 

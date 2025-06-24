@@ -1,9 +1,7 @@
 // src/scripts/agent.ts
 
 import { execSync } from 'child_process';
-import { generateAgenticFeature } from '../services/agenticGenerator'; 
-import fs from 'fs';
-import path from 'path';
+import { generateAgenticFeature } from '../services/agenticGenerator';
 
 /**
  * Accepts a user goal and executes the agentic test loop:

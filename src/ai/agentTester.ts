@@ -1,20 +1,20 @@
-import { clear } from 'console';
+// src/ai/agentTester.ts
 
-type AgentContext = {
+export type AgentContext = {
   investorRecordsAvailable?: boolean;
   fundDocumentsAvailable?: boolean;
   emailServiceAvailable?: boolean;
   previouslyFailedDueToMissingData?: boolean;
 };
 
-type AgentStep = {
+export type AgentStep = {
   tool: string;
   input: string;
   output: string;
   timestamp: string;
 };
 
-type AgentLog = {
+export type AgentLog = {
   type: 'info' | 'error';
   message: string;
   timestamp: string;
@@ -25,6 +25,7 @@ export class CapitalCallAgent {
   private logs: AgentLog[] = [];
   private context: AgentContext = {};
   private status: 'idle' | 'halted' | 'completed' = 'idle';
+  private summaryText: string = '';
 
   setContext(context: AgentContext) {
     this.context = { ...this.context, ...context };
@@ -42,6 +43,10 @@ export class CapitalCallAgent {
     return this.status;
   }
 
+  getSummary(): string {
+    return this.summaryText || 'No summary generated';
+  }
+
   private logStep(tool: string, input: string, output: string) {
     const step: AgentStep = {
       tool,
@@ -50,6 +55,10 @@ export class CapitalCallAgent {
       timestamp: new Date().toISOString()
     };
     this.steps.push(step);
+
+    if (tool === 'LLM' && input.includes('summary')) {
+      this.summaryText = output;
+    }
   }
 
   private log(type: 'info' | 'error', message: string) {
@@ -67,7 +76,6 @@ export class CapitalCallAgent {
     this.logs = [];
     this.status = 'idle';
 
-    // Step 1: Check data availability
     if (!this.context.investorRecordsAvailable || !this.context.fundDocumentsAvailable) {
       this.log('error', 'Missing investor records or fund documents');
       this.log('info', 'Administrator notified');
@@ -75,13 +83,9 @@ export class CapitalCallAgent {
       return this.steps;
     }
 
-    // Step 2: Generate summary
     this.logStep('LLM', `Generate summary for fund ${fundId}`, 'Summary generated');
-
-    // Step 3: Validate compliance
     this.logStep('ComplianceChecker', 'Validate generated summary', 'Compliant');
 
-    // Step 4: Send notifications
     if (this.context.emailServiceAvailable === false) {
       for (let attempt = 1; attempt <= 3; attempt++) {
         this.log('info', `Retrying email delivery (attempt ${attempt})`);
@@ -131,6 +135,11 @@ export class CapitalCallAgent {
       timestamp: new Date().toISOString()
     });
 
+    return await this.runInvestorNotificationWorkflow('fund-001');
+  }
+
+  // Convenience method for full test compatibility
+  async run(): Promise<AgentStep[]> {
     return await this.runInvestorNotificationWorkflow('fund-001');
   }
 }
