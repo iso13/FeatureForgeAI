@@ -11,6 +11,14 @@ interface TestContext {
   method?: string;
 }
 
+function printSeparator(label?: string): void {
+  console.log('\n────────────────────────────────────────────');
+  if (label) {
+    console.log(`📌 ${label}`);
+    console.log('────────────────────────────────────────────');
+  }
+}
+
 Given(
   'I perform a load test on the {string} endpoint using the {string} method',
   function (this: TestContext, endpoint: string, method: string) {
@@ -29,13 +37,13 @@ Given(
     }
 
     const __dirname = getDirName(import.meta.url);
-
-const loadTestPath = path.resolve(
-  __dirname, '../../support/performance/loadTest.js'
-);
+    const loadTestPath = path.resolve(
+      __dirname,
+      '../../support/performance/loadTest.js'
+    );
 
     if (!this.endpoint || !this.method) {
-      throw new Error('Endpoint or HTTP method is not defined.');
+      throw new Error('❌ Endpoint or HTTP method is not defined.');
     }
 
     const command = `k6 run \
@@ -43,9 +51,10 @@ const loadTestPath = path.resolve(
   --out json=reports/performance/loadTest.json \
   ${loadTestPath}`;
 
-    console.log('Running k6 load test...');
+    printSeparator('Running k6 Load Test');
     console.log(`Command: ${command}`);
-    console.log(`Env - VUS: ${vus}, Duration: ${duration}s, Endpoint: ${this.endpoint}, Method: ${this.method}`);
+    console.log(`Env - VUS: ${vus}, Duration: ${duration}s`);
+    console.log(`Endpoint: ${this.endpoint}, Method: ${this.method}`);
 
     try {
       execSync(command, {
@@ -59,15 +68,15 @@ const loadTestPath = path.resolve(
         stdio: 'inherit',
       });
     } catch (error) {
-      console.error('k6 execution failed:', (error as Error).message);
+      console.error('❌ k6 execution failed:', (error as Error).message);
       throw new Error('k6 test run failed. Check logs above for details.');
     }
 
     if (fs.existsSync(jsonReportPath)) {
-      console.log('Load test completed. Reading results...');
+      printSeparator('Reading k6 Test Results');
       testResult = fs.readFileSync(jsonReportPath, 'utf8');
     } else {
-      throw new Error('Load test JSON report was not found.');
+      throw new Error('❌ Load test JSON report was not found.');
     }
   }
 );
@@ -75,26 +84,77 @@ const loadTestPath = path.resolve(
 Then('the test should complete successfully', function (): void {
   const resultData = JSON.parse(testResult);
   const checks = resultData.metrics.checks;
-  if (checks?.values.rate < 1) {
-    throw new Error(`Test failed. Success rate was ${(checks.values.rate * 100).toFixed(2)}%.`);
+
+  const successRate = checks?.values.rate ?? 0;
+  const passed = successRate === 1;
+
+  printSeparator('Success Rate Summary');
+  console.log(`✅ Success Rate: ${(successRate * 100).toFixed(2)}%`);
+  if (!passed) {
+    throw new Error(`❌ Test failed. Success rate was ${(successRate * 100).toFixed(2)}%.`);
   }
-  console.log('All checks passed successfully with a 100% success rate.');
 });
 
 Then('the average response time should be below {int}ms', function (threshold: number): void {
   const resultData = JSON.parse(testResult);
   const avg = resultData.metrics['http_req_duration']?.values.avg;
+
+  printSeparator('Average Response Time');
+  console.log(`ℹ️ Average response time: ${avg}ms (threshold: ${threshold}ms)`);
+
   if (avg === undefined || avg >= threshold) {
-    throw new Error(`Average response time ${avg}ms exceeds threshold ${threshold}ms.`);
+    throw new Error(`❌ Avg response time ${avg}ms exceeds threshold ${threshold}ms.`);
   }
-  console.log(`Avg response time: ${avg}ms (threshold: ${threshold}ms)`);
+});
+
+Then('the 95th percentile should be below {int}ms', function (threshold: number): void {
+  const resultData = JSON.parse(testResult);
+  const p95 = resultData.metrics['http_req_duration']?.values['p(95)'];
+
+  printSeparator('95th Percentile Response Time');
+  console.log(`ℹ️ 95th percentile: ${p95}ms (threshold: ${threshold}ms)`);
+
+  if (p95 === undefined || p95 >= threshold) {
+    throw new Error(`❌ 95th percentile ${p95}ms exceeds threshold ${threshold}ms.`);
+  }
 });
 
 Then('the success rate should be {int}%', function (expectedRate: number): void {
   const resultData = JSON.parse(testResult);
-  const rate = resultData.metrics.checks?.values.rate * 100;
-  if (rate < expectedRate) {
-    throw new Error(`Success rate ${rate}% is below expected ${expectedRate}%.`);
+  const actualRate = resultData.metrics.checks?.values.rate * 100;
+
+  printSeparator('Success Rate Validation');
+  console.log(`ℹ️ Success Rate: ${actualRate}% (expected: ${expectedRate}%)`);
+
+  if (actualRate < expectedRate) {
+    throw new Error(`❌ Success rate ${actualRate}% is below expected ${expectedRate}%.`);
   }
-  console.log(`Success rate is ${rate}% and meets the expected ${expectedRate}%.`);
+});
+
+Then('the 95th percentile response time should be below {int}ms', function (threshold: number): void {
+  const resultData = JSON.parse(testResult);
+  const p95 = resultData.metrics['http_req_duration']?.values['p(95)'];
+
+  printSeparator('95th Percentile Response Time');
+  console.log(`ℹ️ 95th percentile: ${p95}ms (threshold: ${threshold}ms)`);
+
+  if (p95 === undefined || p95 >= threshold) {
+    throw new Error(`❌ 95th percentile ${p95}ms exceeds threshold ${threshold}ms.`);
+  }
+});
+
+Then('print the k6 performance thresholds summary', function (): void {
+  const resultData = JSON.parse(testResult);
+  const metrics = resultData.metrics;
+
+  printSeparator('📊 k6 Performance Summary');
+  for (const [metric, data] of Object.entries(metrics)) {
+    const values = (data as any).values;
+    if (!values) continue;
+
+    console.log(`\n📈 ${metric}`);
+    for (const [stat, val] of Object.entries(values)) {
+      console.log(`  • ${stat}: ${val}`);
+    }
+  }
 });
