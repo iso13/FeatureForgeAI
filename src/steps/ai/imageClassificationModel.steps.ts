@@ -4,7 +4,7 @@ import { expect } from '@playwright/test';
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import path from 'path';
-import { getDirName } from '../utils/dirname.js'; // use .js extension for ESM
+import { getDirName } from '../../utils/dirname.js'; // use .js extension for ESM
 
 let model: tf.LayersModel;
 let predictions: { image: string; label: string }[] = [];

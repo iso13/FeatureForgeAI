@@ -1,8 +1,8 @@
 // Step definitions
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { StockPricePredictor } from '../support/predictor/stockPricePredictor';
-import { parseCSV } from '../support/utils/csvParser';
+import { StockPricePredictor } from '../../support/predictor/stockPricePredictor';
+import { parseCSV } from '../../support/utils/csvParser';
 import path from 'path';
 
 let predictor: StockPricePredictor;
