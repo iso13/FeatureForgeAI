@@ -1,3 +1,6 @@
+// src/scripts/dom-generator-interactive.ts
+// This script generates a declarative feature file based on the DOM structure of a webpage.
+// It uses Playwright to analyze the page and interactively gather user preferences for scenario generation.
 import { chromium } from 'playwright';
 import { writeFileSync } from 'fs';
 import { join } from 'path';

@@ -1,0 +1,37 @@
+{
+  "id": null,
+  "uid": "playwright-otel",
+  "title": "Cucumber + Playwright Telemetry",
+  "timezone": "browser",
+  "editable": true,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Average Span Duration (ms)",
+      "targets": [
+        {
+          "expr": "rate(otelcol_process_cpu_seconds_total[1m]) * 1000",
+          "legendFormat": "CPU Usage",
+          "interval": ""
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "graph",
+      "title": "Memory Usage",
+      "targets": [
+        {
+          "expr": "otelcol_process_resident_memory_bytes",
+          "legendFormat": "Memory",
+          "interval": ""
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    }
+  ],
+  "schemaVersion": 30,
+  "version": 1
+}

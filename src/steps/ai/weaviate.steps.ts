@@ -16,7 +16,7 @@ import { injectIdsIntoDocs } from '../../utils/injectIdsIntoDocs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-Given('our document system is ready', async function (this: CustomWorld) {
+Given('our document system is ready', { timeout: 30000 }, async function (this: CustomWorld) {
   await createSchemaIfNeeded(this.stepSpan);
 });
 

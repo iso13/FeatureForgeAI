@@ -1,16 +1,16 @@
-// Step Definition for Validate Correct Image Labeling for Cats and Dogs
+// src/steps/ai/imageClassificationModel.steps.ts
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import * as tf from '@tensorflow/tfjs-node';
 import * as fs from 'fs';
 import path from 'path';
-import { getDirName } from '../../utils/dirname.js'; // use .js extension for ESM
+import { getDirName } from '../../utils/dirname.js'; // ESM-safe __dirname
 
 let model: tf.LayersModel;
 let predictions: { image: string; label: string }[] = [];
 
 const __dirname = getDirName(import.meta.url);
-const KNOWN_IMAGES_DIR = path.join(__dirname, '../support/images/known');
+const KNOWN_IMAGES_DIR = path.join(__dirname, '../../support/images/known'); // ✅ fixed path
 
 const EXPECTED_LABELS = [
   { image: 'cat.jpg', label: 'cat' },
@@ -32,7 +32,6 @@ async function predictImageLabel(
   const imageBuffer = fs.readFileSync(imagePath);
   let imageTensor = tf.node.decodeImage(imageBuffer);
 
-  // Resize to [100, 100, 3]
   imageTensor = tf.image.resizeBilinear(imageTensor, [100, 100]);
   imageTensor = imageTensor.expandDims(0); // [1, 100, 100, 3]
 

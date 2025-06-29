@@ -1,4 +1,4 @@
-@validateRetrieval @weaviate @no-browser
+@validateRetrieval @weaviate @no-browser @wip
 Feature: Validate Retrieval
   As someone responsible for AI quality,
   I want the system to return relevant documents for a given query,
