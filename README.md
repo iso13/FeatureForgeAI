@@ -1,5 +1,5 @@
 ![BDD](docs/images/BDD.png)
-# cucumber-automation
+# FeatueForge AI
 
 # Cucumber Automation Framework 🚀
 

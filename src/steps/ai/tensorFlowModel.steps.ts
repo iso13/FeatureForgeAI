@@ -4,7 +4,7 @@ import { expect } from '@playwright/test';
 
 // Import TensorFlow.js and custom model functions
 import * as tf from '@tensorflow/tfjs';
-import { createSimpleModel, predictValue } from '../support/model/simpleModel';
+import { createSimpleModel, predictValue } from '../../support/model/simpleModel';
 
 let model: tf.LayersModel; // Variable to store the TensorFlow model
 let prediction: number; // Variable to store the model's prediction result

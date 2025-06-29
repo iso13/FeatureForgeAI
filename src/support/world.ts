@@ -14,6 +14,11 @@ import { RAGEngine } from '../ai/ragHelper';
 import { BasePage } from '../pages/BasePage';
 import { DefaultPage } from '../pages/defaultPage';
 
+// ✅ ML model interface with predict method
+export interface MLModel {
+  predict: (input: any) => number;
+}
+
 export interface CustomWorld extends World {
   browser: Browser;
   context: BrowserContext;
@@ -51,6 +56,12 @@ export interface CustomWorld extends World {
   capitalCalls?: any[];
   notificationLogs?: any[];
   serviceDown?: boolean;
+
+  // Fairness audit fields
+  inputSample?: { demographic: string; attributes: { income: number; age: number } };
+  modelOutput?: number;
+  baselineOutput?: number;
+  model?: MLModel;
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
@@ -88,24 +99,35 @@ class PlaywrightWorld extends World implements CustomWorld {
   notificationLogs?: any[];
   serviceDown?: boolean;
 
+  // Fairness audit fields
+  inputSample?: { demographic: string; attributes: { income: number; age: number } };
+  modelOutput?: number;
+  baselineOutput: number = 0.5;
+  model?: MLModel;
+
   constructor(options: IWorldOptions) {
     super(options);
   }
 
   async launchBrowser(options: LaunchOptions & BrowserContextOptions = {}): Promise<void> {
-    const { headless = true, ...contextOptions } = options;
+  try {
+    const { chromium } = await import('playwright');
 
-    try {
-      const { chromium } = await import('playwright'); // runtime import to avoid ESM issues
-      this.browser = await chromium.launch({ headless });
-      this.context = await this.browser.newContext(contextOptions);
-      this.page = await this.context.newPage();
-      this.basePage = new DefaultPage(this.page);
-    } catch (error) {
-      console.error('Failed to launch browser:', error);
-      throw error;
-    }
+    const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
+    const headless = options.headless ?? headlessEnv ?? false;
+    const slowMo = options.slowMo ?? 100;
+
+    this.browser = await chromium.launch({ headless, slowMo });
+    this.context = await this.browser.newContext(options);
+    this.page = await this.context.newPage();
+    this.basePage = new DefaultPage(this.page);
+
+    console.log(`✅ Browser launched with headless=${headless}`);
+  } catch (error) {
+    console.error('❌ Failed to launch browser:', error);
+    throw error;
   }
+}
 }
 
 setWorldConstructor(PlaywrightWorld);

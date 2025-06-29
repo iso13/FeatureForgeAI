@@ -1,4 +1,4 @@
-@validateAccessibility @a11y @no-browser
+@validateAccessibility @a11y
 Feature: Validate Accessibility
   As a user,
   I want the application to be accessible,

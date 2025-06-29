@@ -1,23 +1,4 @@
-/**
- * weaviateClient.ts
- *
- * Provides lifecycle utilities for interacting with a local or remote Weaviate instance.
- * 
- * This includes:
- * - Creating the `Document` schema if it doesn't exist (with OpenAI vectorization support)
- * - Importing internal documents into the vector database
- * - Querying similar documents using semantic search (nearText)
- * - Managing a singleton instance of the Weaviate client to avoid reconnects
- * 
- * Common BDD use cases:
- * - Load internal documentation into a searchable format
- * - Retrieve top-K relevant documents based on user prompts
- * - Support LLM grounding and hallucination detection
- * 
- * Docker Usage:
- * This assumes a local Weaviate instance is running in Docker on `localhost:8080`
- * using the `text2vec-openai` module.
- */
+// utils/weaviateClient.ts
 
 import weaviate from 'weaviate-ts-client';
 import type { WeaviateClient } from 'weaviate-ts-client';
@@ -25,7 +6,6 @@ import type { Span } from '@opentelemetry/api';
 import { withSpan } from './traceHelper';
 import type { DocumentInput } from './injectIdsIntoDocs';
 
-// ✅ Legacy compat: ensure Weaviate gets OPENAI_APIKEY if OPENAI_API_KEY is set
 process.env.OPENAI_APIKEY ??= process.env.OPENAI_API_KEY;
 
 let client: WeaviateClient;
@@ -40,12 +20,30 @@ export function getWeaviateClient(): WeaviateClient {
   return client;
 }
 
+async function waitForWeaviateReady(timeoutMs = 15000, intervalMs = 500): Promise<void> {
+  const client = getWeaviateClient();
+  const start = Date.now();
+
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const status = await client.misc.readyChecker().do();
+      if (status.isReady) return;
+    } catch {
+      // ignore errors and keep polling
+    }
+    await new Promise(resolve => setTimeout(resolve, intervalMs));
+  }
+
+  throw new Error(`Weaviate is not ready after ${timeoutMs / 1000} seconds.`);
+}
+
 export async function createSchemaIfNeeded(parentSpan?: Span): Promise<void> {
   const client = getWeaviateClient();
 
   await withSpan('createSchemaIfNeeded', async span => {
-    const existingSchema = await client.schema.getter().do();
+    await waitForWeaviateReady(); // ✅ ensure readiness before schema ops
 
+    const existingSchema = await client.schema.getter().do();
     const schemaExists = existingSchema.classes?.some(c => c.class === 'Document');
     span.setAttribute('schemaExists', schemaExists ?? false);
 
@@ -69,7 +67,7 @@ export async function createSchemaIfNeeded(parentSpan?: Span): Promise<void> {
               dataType: ['text'],
               moduleConfig: { 'text2vec-openai': { skip: true } },
               indexInverted: true,
-              description: 'A unique identifier for this document'
+              description: 'A unique identifier for this document',
             },
             { name: 'title', dataType: ['text'] },
             { name: 'body', dataType: ['text'] },

@@ -1,3 +1,5 @@
+// src/scripts/featureGenerator.ts
+// It prompts the user for feature details, generates Gherkin content, and writes both the feature file using OpenAI
 import path from 'path';
 import { promptForFeatureDetails } from '../prompts/featurePrompts';
 import { generateGherkinPrompt } from '../utils/gherkinPrompt';

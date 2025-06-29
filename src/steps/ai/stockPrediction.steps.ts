@@ -1,12 +1,13 @@
 // Step definitions
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import { StockPricePredictor } from '../support/predictor/stockPricePredictor';
-import { parseCSV } from '../support/utils/csvParser';
+import { StockPricePredictor } from '../../support/predictor/stockPricePredictor';
+import { parseCSV } from '../../utils/csvParser';
 import path from 'path';
 
 let predictor: StockPricePredictor;
 let predictedPrice: number;
+
 
 Given('I have trained the stock price predictor with historical data', async function () {
   const filePath = path.resolve(__dirname, '../data/tesla_stock_data.csv');

@@ -1,29 +1,39 @@
 // src/support/tracer.ts
 
 import { trace } from '@opentelemetry/api';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { FsInstrumentation } from '@opentelemetry/instrumentation-fs';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { Resource } from '@opentelemetry/resources';
+import {
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_VERSION,
+} from '@opentelemetry/semantic-conventions';
+import {
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+} from '@opentelemetry/semantic-conventions/incubating';
 
 export const tracer = trace.getTracer('cucumber-playwright');
 
-let sdk: any;
+let sdk: NodeSDK | undefined;
 const isTracingEnabled = process.env.ENABLE_TRACING === 'true';
+const isVerbose = process.env.VERBOSE === 'true';
+
+// Only log when both tracing is enabled AND verbose is true
+const shouldLog = isTracingEnabled && isVerbose;
 
 async function initTelemetry() {
-  console.log('Initializing OpenTelemetry...');
-
-  const { NodeSDK } = await import('@opentelemetry/sdk-node');
-  const { HttpInstrumentation } = await import('@opentelemetry/instrumentation-http');
-  const { FsInstrumentation } = await import('@opentelemetry/instrumentation-fs');
-  const { OTLPTraceExporter } = await import('@opentelemetry/exporter-trace-otlp-http');
-  const { Resource } = await import('@opentelemetry/resources');
-  const { ATTR_SERVICE_NAME } = await import('@opentelemetry/semantic-conventions');
+  if (shouldLog) console.log('Initializing OpenTelemetry...');
 
   const otlpExporter = new OTLPTraceExporter({
-    url: 'http://localhost:4318/v1/traces',
+    url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT || 'http://localhost:4318/v1/traces',
   });
 
   const resource = new Resource({
     [ATTR_SERVICE_NAME]: 'cucumber-playwright',
-    'deployment.environment': process.env.ENV || 'local',
+    [ATTR_SERVICE_VERSION]: '1.0.0',
+    [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.ENV || 'local',
   });
 
   sdk = new NodeSDK({
@@ -33,42 +43,41 @@ async function initTelemetry() {
   });
 
   await sdk.start();
-  trace.setGlobalTracerProvider(sdk.getTracerProvider());
 
-  console.log('OpenTelemetry initialized');
+  if (shouldLog) console.log('OpenTelemetry initialized (OTLP)');
 
   const span = tracer.startSpan('telemetry-initialization');
-  span.setAttribute('status', 'successful');
+  span.setAttribute('otel.status', 'initialized');
   span.end();
 }
 
 export async function shutdownTelemetry() {
   if (isTracingEnabled && sdk) {
-    console.log('Manual shutdown of OpenTelemetry requested');
+    if (shouldLog) console.log('Shutting down OpenTelemetry...');
     try {
       await Promise.race([
         sdk.shutdown(),
         new Promise<void>((resolve) =>
           setTimeout(() => {
-            console.warn('OpenTelemetry shutdown timed out after 3s');
+            if (shouldLog) console.warn('OpenTelemetry shutdown timed out after 3s');
             resolve();
           }, 3000)
         ),
       ]);
-      console.log('OpenTelemetry shutdown completed');
+      if (shouldLog) console.log('OpenTelemetry shutdown complete');
     } catch (err) {
-      console.warn('OpenTelemetry shutdown error:', err);
+      if (shouldLog) console.warn('OpenTelemetry shutdown error:', err);
     }
   }
 }
 
 if (isTracingEnabled) {
   initTelemetry().catch((err) => {
-    console.error('OpenTelemetry failed to initialize:', err);
+    if (shouldLog) console.error('OpenTelemetry initialization failed:', err);
   });
 
   process.on('SIGTERM', async () => {
-    console.log('Received SIGTERM, shutting down…');
+    if (shouldLog) console.log('Received SIGTERM – shutting down gracefully');
     await shutdownTelemetry();
     process.exit(0);
   });

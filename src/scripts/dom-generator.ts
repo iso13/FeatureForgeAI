@@ -1,3 +1,6 @@
+// src/scripts/dom-generator.ts
+// This script generates a declarative feature file based on the DOM structure of a webpage.
+// It uses Playwright to analyze the page and extract relevant elements, then formats them into G
 import { chromium } from 'playwright';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
