@@ -74,7 +74,7 @@ Then(
       Result: ${delta <= threshold ? '✅ PASS' : '❌ FAIL'}
     `.trim();
 
-    await this.attach(log, 'text/plain');
+    this.attach(log, 'text/plain');
 
     expect(delta).toBeLessThanOrEqual(threshold);
   }

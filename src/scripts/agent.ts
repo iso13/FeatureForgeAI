@@ -12,7 +12,7 @@ import { generateAgenticFeature } from '../services/agenticGenerator';
  */
 
 async function agenticTest(goal: string) {
-  console.log(`🚀 Starting agentic test for: "${goal}"`);
+  console.log(`Starting agentic test for: "${goal}"`);
 
   // Step 1: Auto-generate feature from goal
   await generateAgenticFeature(goal);
@@ -29,18 +29,18 @@ async function agenticTest(goal: string) {
 
   // Step 3: Analyze results
   if (output.includes('0 scenarios (0 passed)')) {
-    console.error('❌ No scenarios found. Regenerating...');
+    console.error('No scenarios found. Regenerating...');
   } else if (output.includes('failed')) {
-    console.warn('⚠️ Test failed. Consider refining steps or regenerating.');
+    console.warn('Test failed. Consider refining steps or regenerating.');
   } else {
-    console.log('✅ Agentic test passed!');
+    console.log('Agentic test passed!');
   }
 }
 
 // Entry point
 const prompt = process.argv[2];
 if (!prompt) {
-  console.error('❌ Please pass a test goal, e.g.: `node agent.ts "Check password reset flow"`');
+  console.error('Please pass a test goal, e.g.: `node agent.ts "Check password reset flow"`');
   process.exit(1);
 }
 
