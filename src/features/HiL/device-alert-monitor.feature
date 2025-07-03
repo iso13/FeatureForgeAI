@@ -1,3 +1,4 @@
+@HiL @deviceAlertMonitor
 Feature: Device alert validation for heart rate monitor
 
   As a QA engineer
