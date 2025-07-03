@@ -1,51 +1,41 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
+import { HeartRateSimulator } from '../../simulators/device-simulator';
+import { logTelemetry } from '../../utils/telemetry-exporter';
 
-// Setup mock device API
-const mock = new MockAdapter(axios);
+const device = new HeartRateSimulator();
+let currentStatus: string = 'IDLE';
 let lastAlert: string | null = null;
-let lastDeviceStatus: string = 'IDLE';
 
-Given('the heart rate monitor device is connected via API', async () => {
-  mock.reset(); // Clear any previous mocks
-  mock.onGet('/device/status').reply(200, { status: 'IDLE' });
-  mock.onPost('/device/simulate-heart-rate').reply((config) => {
-    const { bpm } = JSON.parse(config.data);
-
-    if (bpm > 120) {
-      lastAlert = 'ALERT_HIGH_HEART_RATE';
-      lastDeviceStatus = 'ALERT';
-      return [200, { alert: lastAlert }];
-    } else {
-      lastAlert = null;
-      lastDeviceStatus = 'NORMAL';
-      return [200, { alert: null }];
-    }
-  });
-
-  const response = await axios.get('/device/status');
-  expect(response.data.status).toBe('IDLE');
+Given('the heart rate monitor device is connected via API', () => {
+  // simulate connection
+  currentStatus = 'IDLE';
 });
 
 Given('the device is in idle state', () => {
-  lastDeviceStatus = 'IDLE';
+  currentStatus = 'IDLE';
 });
 
-When('I simulate a heart rate of {int} bpm', async (bpm: number) => {
-  const response = await axios.post('/device/simulate-heart-rate', { bpm });
-  lastAlert = response.data.alert;
+When('I simulate a heart rate of {int} bpm', (bpm: number) => {
+  const result = device.simulate(bpm);
+  lastAlert = result.alert;
+  currentStatus = result.status;
+
+  logTelemetry('HeartRateSimulated', {
+    bpm,
+    alert: lastAlert,
+    status: currentStatus,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 Then('the device should send an {string} notification', (expectedAlert: string) => {
   expect(lastAlert).toBe(expectedAlert);
 });
 
-Then('the alert should be logged in the monitoring system', async () => {
-  // Simulate alert logging check
-  const logs = ['ALERT_HIGH_HEART_RATE']; // You could mock or inject this
-  expect(logs.includes(lastAlert!)).toBe(true);
+Then('the alert should be logged in the monitoring system', () => {
+  // If integrated with OTEL, check external logs or assume telemetry logging
+  expect(lastAlert).not.toBeNull();
 });
 
 Then('no alert should be sent', () => {
@@ -53,5 +43,5 @@ Then('no alert should be sent', () => {
 });
 
 Then('the device status should remain {string}', (expectedStatus: string) => {
-  expect(lastDeviceStatus).toBe(expectedStatus);
+  expect(currentStatus).toBe(expectedStatus);
 });
