@@ -48,7 +48,7 @@ class InteractiveDOMGenerator {
       if (choice >= 0 && choice < choices.length) {
         return choice;
       }
-      console.log('❌ Invalid choice. Please try again.');
+      console.log('Invalid choice. Please try again.');
     }
   }
 
@@ -74,12 +74,12 @@ class InteractiveDOMGenerator {
         return selections;
       }
       
-      console.log('❌ Invalid selections. Please try again.');
+      console.log('Invalid selections. Please try again.');
     }
   }
 
   async gatherUserPreferences() {
-    console.log('\n🎯 DOM Generator - Interactive Mode');
+    console.log('\nDOM Generator - Interactive Mode');
     console.log('=====================================');
 
     const focusChoice = await this.multipleChoice(
@@ -103,7 +103,7 @@ class InteractiveDOMGenerator {
       scenarioTypes
     );
 
-    console.log('\n📝 Custom Scenarios');
+    console.log('\nCustom Scenarios');
     const customScenarios: string[] = [];
     while (true) {
       const custom = await this.question('Add a custom scenario description (or press Enter to skip): ');
@@ -123,16 +123,16 @@ class InteractiveDOMGenerator {
   async analyzePageInteractively(url: string) {
     if (!this.page) throw new Error('Page not initialized');
     
-    console.log(`\n🔍 Analyzing ${url}...`);
+    console.log(`\nAnalyzing ${url}...`);
     await this.page.goto(url, { waitUntil: 'networkidle' });
     
     const title = await this.page.title();
     const domain = new URL(url).hostname.replace('www.', '');
     
-    console.log(`📄 Page title: ${title}`);
-    console.log(`🌐 Domain: ${domain}`);
+    console.log(`Page title: ${title}`);
+    console.log(`Domain: ${domain}`);
 
-    console.log('\n📊 Extracting page elements...');
+    console.log('\nExtracting page elements...');
     
     const links = await this.extractElementsWithFeedback('links', 'a[href]', 12);
     const buttons = await this.extractElementsWithFeedback('buttons', 'button, input[type="button"], input[type="submit"]', 10);
@@ -152,7 +152,7 @@ class InteractiveDOMGenerator {
 
     // Let user choose journeys
     if (analysis.userJourneys.length > 0) {
-      console.log('\n🎯 Detected User Journeys:');
+      console.log('\nDetected User Journeys:');
       analysis.userJourneys.forEach((journey: any, index: number) => {
         console.log(`  ${index + 1}. ${journey.scenario} (${journey.type})`);
         console.log(`     ${journey.description}`);
@@ -165,7 +165,7 @@ class InteractiveDOMGenerator {
 
       analysis.userJourneys = selectedJourneys.map(index => analysis.userJourneys[index]);
     } else {
-      console.log('\n⚠️  No specific user journeys detected. Will generate generic scenarios.');
+      console.log('\nNo specific user journeys detected. Will generate generic scenarios.');
     }
 
     return analysis;
@@ -223,10 +223,10 @@ class InteractiveDOMGenerator {
         }
       }
       
-      console.log(`✅ Found ${results.length}`);
+      console.log(`Found ${results.length}`);
       return results;
     } catch (error) {
-      console.log(`⚠️ No elements found`);
+      console.log(`No elements found`);
       return [];
     }
   }
@@ -472,15 +472,15 @@ Background:
       await this.init();
       
       // Get basic information
-      const url = await this.question('\n🌐 Enter the URL to analyze: ');
-      const outputPath = await this.question('📁 Enter output directory (e.g., ./features): ');
-      const featureName = await this.question('📝 Enter feature name: ');
+      const url = await this.question('\nEnter the URL to analyze: ');
+      const outputPath = await this.question('Enter output directory (e.g., ./features): ');
+      const featureName = await this.question('Enter feature name: ');
       
       // Validate URL
       try {
         new URL(url);
       } catch (error) {
-        console.error('❌ Invalid URL provided');
+        console.error('Invalid URL provided');
         return;
       }
 
@@ -491,7 +491,7 @@ Background:
       const analysis = await this.analyzePageInteractively(url);
       
       // Generate feature file
-      console.log('\n🎯 Generating scenarios...');
+      console.log('\nGenerating scenarios...');
       const gherkinContent = this.generateFeature(analysis, featureName, options);
       
       const fileName = `${featureName.toLowerCase().replace(/\s+/g, '-')}.feature`;
@@ -499,14 +499,14 @@ Background:
       
       writeFileSync(fullPath, gherkinContent);
       
-      console.log(`\n✅ Generated feature file: ${fullPath}`);
-      console.log(`🎯 Focus: ${options.focus} scenarios`);
-      console.log(`📄 Contains ${gherkinContent.split('Scenario:').length - 1} scenarios`);
+      console.log(`\nGenerated feature file: ${fullPath}`);
+      console.log(`Focus: ${options.focus} scenarios`);
+      console.log(`Contains ${gherkinContent.split('Scenario:').length - 1} scenarios`);
       
       // Show preview
-      const preview = await this.question('\n👀 Would you like to see a preview? (y/n): ');
+      const preview = await this.question('\nWould you like to see a preview? (y/n): ');
       if (preview.toLowerCase() === 'y') {
-        console.log('\n📋 Generated Feature Preview:');
+        console.log('\nGenerated Feature Preview:');
         console.log('='.repeat(50));
         console.log(gherkinContent.split('\n').slice(0, 20).join('\n'));
         console.log('...');
@@ -514,7 +514,7 @@ Background:
       }
       
     } catch (error) {
-      console.error('❌ Error in interactive mode:', error);
+      console.error('Error in interactive mode:', error);
     } finally {
       await this.cleanup();
     }
