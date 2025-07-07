@@ -1,3 +1,14 @@
+/**
+ * FeatureForge AI
+ * Copyright (c) 2024–2025 David Tran
+ * Licensed under the Business Source License 1.1
+ * See LICENSE.txt for full terms
+ * Change Date: January 1, 2029 (license converts to MIT)
+ * Contact: davidtran@featuregen.ai
+ */
+
+// SPDX-License-Identifier: BSL-1.1
+
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
