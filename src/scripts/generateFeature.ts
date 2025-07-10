@@ -58,7 +58,9 @@ ${gherkinContent}`;
   });
 
   const raw = response.choices?.[0]?.message?.content;
-  return typeof raw === 'string' ? raw.trim() : '';
+  return typeof raw === 'string'
+    ? raw.replace(/```typescript/g, '').replace(/```/g, '').trim()
+    : '';
 }
 
 async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number) {
@@ -88,7 +90,8 @@ Output the feature file now.`;
     ? raw.replace(/```gherkin|```/g, '').replace(/^.*?(?=@|Feature:)/s, '').trim()
     : '';
 
-  const tagged = `${tag}\n${cleaned}`;
+  const alreadyTagged = cleaned.trim().startsWith(tag);
+  const tagged = alreadyTagged ? cleaned.trim() : `${tag}\n${cleaned.trim()}`;
   const actualFeature = tagged.split('\n').filter(line => !line.startsWith('This') && !line.startsWith('All')).join('\n');
 
   return actualFeature;
