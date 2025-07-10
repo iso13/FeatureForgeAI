@@ -53,6 +53,43 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
     if (hasNoBrowserTag) console.log('Detected @no-browser tag. Skipping browser launch.');
   }
 
+  // ✅ Sully AI agent mocks
+  this.api = {
+    connectAudioStream: async (room: string) => {
+      return { room, streamId: 'mock-stream-id' };
+    },
+    connectEMR: async () => {
+      if (!this.emr) {
+        this.emr = {
+          status: 'connected',
+          storeVisitSummary: async (summary) => {
+            console.log('✅ Mock summary stored:', summary);
+            return { success: true };
+          },
+        };
+      }
+    },
+    getTranscript: async (session: string) => {
+      return `Transcript for session ${session}`;
+    },
+  };
+
+  this.healthAgent = {
+    transcribe: async (stream: any) => {
+      return `Transcribed summary of stream ${stream.room}`;
+    },
+    extractClinicalData: async (summary: string) => {
+      return {
+        symptoms: ['fatigue', 'fever'],
+        history: 'Patient reports 3 days of flu-like symptoms',
+        plan: 'Rest and fluids recommended',
+      };
+    },
+    tagICD10: async (data: any) => {
+      return { codes: ['R53.83', 'R50.9'] };
+    },
+  };
+
   try {
     if (isTracingEnabled) {
       const spanName = `Feature: ${this.featureName} - Scenario: ${this.scenarioName}`;
@@ -65,8 +102,6 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
     }
 
     if (hasNoBrowserTag) return;
-
-    if (isVerbose) console.log('Launching browser in headed mode...');
 
     const contextOptions = isVideoEnabled
       ? { headless: false, recordVideo: { dir: 'reports/videos' } }
@@ -94,8 +129,8 @@ BeforeStep(function (this: CustomWorld, step) {
           'cucumber.feature': this.featureName,
           'cucumber.step': stepText,
           'cucumber.scenario': this.scenarioName,
-          'test.framework': 'cucumber'
-        }
+          'test.framework': 'cucumber',
+        },
       });
       if (isVerbose) console.log('✓ Created step span');
     }

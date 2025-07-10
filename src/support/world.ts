@@ -57,7 +57,7 @@ export interface CustomWorld extends World {
 
   // RAG testing fields
   rag?: RAGEngine;
-  summary: string;
+  summary?: string;
   retrievedDocs?: any[];
   lastQuery?: string;
 
@@ -73,6 +73,23 @@ export interface CustomWorld extends World {
   modelOutput?: number;
   baselineOutput?: number;
   model?: MLModel;
+
+  // Sully.ai-specific fields
+  audioStream?: any;
+  api?: {
+    connectAudioStream: (room: string) => Promise<any>;
+    connectEMR: () => Promise<any>;
+    getTranscript: (session: string) => Promise<string>;
+  };
+  emr?: {
+    status?: string;
+    storeVisitSummary: (summary: any) => Promise<{ success: boolean }>;
+  };
+  healthAgent?: {
+    transcribe: (stream: any) => Promise<string>;
+    extractClinicalData: (summary: string) => Promise<any>;
+    tagICD10: (data: any) => Promise<any>;
+  };
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
@@ -99,7 +116,7 @@ class PlaywrightWorld extends World implements CustomWorld {
 
   // RAG testing fields
   rag?: RAGEngine;
-  summary: string = '';
+  summary?: string;
   retrievedDocs?: any[] = [];
   lastQuery?: string;
 
@@ -116,29 +133,46 @@ class PlaywrightWorld extends World implements CustomWorld {
   baselineOutput: number = 0.5;
   model?: MLModel;
 
+  // Sully.ai-specific
+  audioStream?: any;
+  api?: {
+    connectAudioStream: (room: string) => Promise<any>;
+    connectEMR: () => Promise<any>;
+    getTranscript: (session: string) => Promise<string>;
+  };
+  emr?: {
+    status?: string;
+    storeVisitSummary: (summary: any) => Promise<{ success: boolean }>;
+  };
+  healthAgent?: {
+    transcribe: (stream: any) => Promise<string>;
+    extractClinicalData: (summary: string) => Promise<any>;
+    tagICD10: (data: any) => Promise<any>;
+  };
+
   constructor(options: IWorldOptions) {
     super(options);
   }
 
   async launchBrowser(options: LaunchOptions & BrowserContextOptions = {}): Promise<void> {
-  try {
-    const { chromium } = await import('playwright');
+    try {
+      const { chromium } = await import('playwright');
 
-    const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
-    const headless = options.headless ?? headlessEnv ?? false;
-    const slowMo = options.slowMo ?? 100;
+      const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
+      const headless = options.headless ?? headlessEnv ?? false;
+      const slowMo = options.slowMo ?? 100;
 
-    this.browser = await chromium.launch({ headless, slowMo });
-    this.context = await this.browser.newContext(options);
-    this.page = await this.context.newPage();
-    this.basePage = new DefaultPage(this.page);
+      this.browser = await chromium.launch({ headless, slowMo });
+      this.context = await this.browser.newContext(options);
+      this.page = await this.context.newPage();
+      this.basePage = new DefaultPage(this.page);
 
-    console.log(`✅ Browser launched with headless=${headless}`);
-  } catch (error) {
-    console.error('❌ Failed to launch browser:', error);
-    throw error;
+      console.log(`✅ Browser launched with headless=${headless}`);
+    } catch (error) {
+      console.error('❌ Failed to launch browser:', error);
+      throw error;
+    }
   }
-}
 }
 
 setWorldConstructor(PlaywrightWorld);
