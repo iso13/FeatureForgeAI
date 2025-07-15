@@ -38,14 +38,14 @@ REQUIREMENTS:
 - Use: import { expect } from '@playwright/test';
 - Use: import type { CustomWorld } from '../support/world';
 - Each step function must be declared with (this: CustomWorld)
-- Use 'this.page' for all Playwright actions
-- Use try/catch blocks around every step
-- Wait for navigation using: await this.page.waitForLoadState('networkidle')
-- Use data-testid attributes for selectors (e.g., [data-testid="username-input"])
-- For When steps, explicitly include fill and click actions for forms
-- For Then steps, use: expect(await element?.isVisible()).toBe(true) — do not use toBeTruthy()
-- Do NOT include any markdown (no \`\`\`), headings, or commentary
-- Only output valid TypeScript step definitions
+- Use 'this.page' for all Playwright actions and selectors
+- Use realistic form field interaction: e.g., await this.page.fill('[data-testid="username-input"]', '...')
+- Use data-testid attributes in selectors (e.g., [data-testid="role-select"])
+- Avoid placeholder comments (e.g., “// fill in details”) — write real Playwright commands instead
+- Wait for page transitions using: await this.page.waitForLoadState('networkidle')
+- Use try/catch blocks in every step and throw helpful error messages
+- For Then steps: assert visibility or content with expect()
+- DO NOT use markdown, backticks, or any comments — only output valid TypeScript step definitions
 
 Gherkin Feature:
 ${gherkinContent}`;
@@ -63,11 +63,11 @@ ${gherkinContent}`;
     : '';
 }
 
-async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number) {
+async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
   const tag = `@${featureTitle.replace(/\s+/g, '').toLowerCase()}`;
   const prompt = `Generate a Cucumber BDD Gherkin feature file.
 
-Requirements:
+REQUIREMENTS:
 - Tag the feature with: ${tag}
 - Title: ${featureTitle}
 - User Story: ${userStory}

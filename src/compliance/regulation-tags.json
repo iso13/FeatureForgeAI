@@ -1,0 +1,8 @@
+{
+    "hipaa-164.310-a-1": {
+      "description": "HIPAA Facility Access Control",
+      "featureFiles": [
+        "src/features/audit/hipaa/audit-physical-access-to-devices.feature"
+      ]
+    }
+  }
