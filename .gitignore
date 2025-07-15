@@ -1,23 +1,23 @@
 node_modules/
 
-reports/
+# Ignore all reports by default...
+reports/**
+
+# ...but allow archived reports (timestamped runs)
+!reports/archive/**
+!reports/.gitkeep
+!reports/README.md
 
 artifacts/
-
 allure-report/
-
 .DS_Store
 
 src/support/model/pretrained-model/weights.bin
-
 src/support/model/pretrained-model/model.json
-
 src/support/apiKey
 
 .env
-
 build/
-
 videos/
 
 **/*.js

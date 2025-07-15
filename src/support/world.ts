@@ -1,14 +1,3 @@
-/**
- * FeatureForge AI
- * Copyright (c) 2024–2025 David Tran
- * Licensed under the Business Source License 1.1
- * See LICENSE.txt for full terms
- * Change Date: January 1, 2029 (license converts to MIT)
- * Contact: davidtran@featuregen.ai
- */
-
-// SPDX-License-Identifier: BSL-1.1
-
 import { setWorldConstructor, World } from '@cucumber/cucumber';
 import type { IWorldOptions } from '@cucumber/cucumber';
 import type {
@@ -25,7 +14,9 @@ import { RAGEngine } from '../ai/ragHelper';
 import { BasePage } from '../pages/BasePage';
 import { DefaultPage } from '../pages/defaultPage';
 
-// ✅ ML model interface with predict method
+import { MockAccessAPI } from '../mocks/mock-access-api';
+import type { AccessAPI } from '../types/access-api';
+
 export interface MLModel {
   predict: (input: any) => number;
 }
@@ -47,40 +38,33 @@ export interface CustomWorld extends World {
   email?: string;
   resetLink?: string;
   newPassword?: string;
+  userId?: string;
+
+  accessApi?: AccessAPI;
 
   launchBrowser(options?: LaunchOptions & BrowserContextOptions): Promise<void>;
 
-  // Agentic AI fields
   agent?: CapitalCallAgent;
   workflowSteps?: any;
   error?: any;
 
-  // RAG testing fields
   rag?: RAGEngine;
   summary?: string;
   retrievedDocs?: any[];
   lastQuery?: string;
 
-  // Agentic test data
   fundAgreements?: any[];
   investors?: any[];
   capitalCalls?: any[];
   notificationLogs?: any[];
   serviceDown?: boolean;
 
-  // Fairness audit fields
   inputSample?: { demographic: string; attributes: { income: number; age: number } };
   modelOutput?: number;
   baselineOutput?: number;
   model?: MLModel;
 
-  // Sully.ai-specific fields
   audioStream?: any;
-  api?: {
-    connectAudioStream: (room: string) => Promise<any>;
-    connectEMR: () => Promise<any>;
-    getTranscript: (session: string) => Promise<string>;
-  };
   emr?: {
     status?: string;
     storeVisitSummary: (summary: any) => Promise<{ success: boolean }>;
@@ -108,38 +92,30 @@ class PlaywrightWorld extends World implements CustomWorld {
   email: string = '';
   resetLink: string = '';
   newPassword: string = '';
+  userId?: string;
+  accessApi?: AccessAPI;
 
-  // Agentic AI fields
   agent?: CapitalCallAgent;
   workflowSteps?: any;
   error?: any;
 
-  // RAG testing fields
   rag?: RAGEngine;
   summary?: string;
   retrievedDocs?: any[] = [];
   lastQuery?: string;
 
-  // Agentic test data
   fundAgreements?: any[];
   investors?: any[];
   capitalCalls?: any[];
   notificationLogs?: any[];
   serviceDown?: boolean;
 
-  // Fairness audit fields
   inputSample?: { demographic: string; attributes: { income: number; age: number } };
   modelOutput?: number;
   baselineOutput: number = 0.5;
   model?: MLModel;
 
-  // Sully.ai-specific
   audioStream?: any;
-  api?: {
-    connectAudioStream: (room: string) => Promise<any>;
-    connectEMR: () => Promise<any>;
-    getTranscript: (session: string) => Promise<string>;
-  };
   emr?: {
     status?: string;
     storeVisitSummary: (summary: any) => Promise<{ success: boolean }>;
@@ -152,26 +128,21 @@ class PlaywrightWorld extends World implements CustomWorld {
 
   constructor(options: IWorldOptions) {
     super(options);
+    this.accessApi = new MockAccessAPI();
   }
 
   async launchBrowser(options: LaunchOptions & BrowserContextOptions = {}): Promise<void> {
-    try {
-      const { chromium } = await import('playwright');
+    const { chromium } = await import('playwright');
+    const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
+    const headless = options.headless ?? headlessEnv ?? false;
+    const slowMo = options.slowMo ?? 100;
 
-      const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
-      const headless = options.headless ?? headlessEnv ?? false;
-      const slowMo = options.slowMo ?? 100;
+    this.browser = await chromium.launch({ headless, slowMo });
+    this.context = await this.browser.newContext(options);
+    this.page = await this.context.newPage();
+    this.basePage = new DefaultPage(this.page);
 
-      this.browser = await chromium.launch({ headless, slowMo });
-      this.context = await this.browser.newContext(options);
-      this.page = await this.context.newPage();
-      this.basePage = new DefaultPage(this.page);
-
-      console.log(`✅ Browser launched with headless=${headless}`);
-    } catch (error) {
-      console.error('❌ Failed to launch browser:', error);
-      throw error;
-    }
+    console.log(`Browser launched with headless=${headless}`);
   }
 }
 
