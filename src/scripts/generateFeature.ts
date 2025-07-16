@@ -33,22 +33,24 @@ const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
 async function generateStepDefinitions(gherkinContent: string): Promise<string> {
   const prompt = `Generate TypeScript step definitions from the following Gherkin feature using Cucumber and Playwright.
 
-REQUIREMENTS:
-- Use: import { Given, When, Then } from '@cucumber/cucumber';
-- Use: import { expect } from '@playwright/test';
-- Use: import type { CustomWorld } from '../support/world';
-- Each step function must be declared with (this: CustomWorld)
-- Use 'this.page' for all Playwright actions and selectors
-- Use realistic form field interaction: e.g., await this.page.fill('[data-testid="username-input"]', '...')
-- Use data-testid attributes in selectors (e.g., [data-testid="role-select"])
-- Avoid placeholder comments (e.g., “// fill in details”) — write real Playwright commands instead
-- Wait for page transitions using: await this.page.waitForLoadState('networkidle')
-- Use try/catch blocks in every step and throw helpful error messages
-- For Then steps: assert visibility or content with expect()
-- DO NOT use markdown, backticks, or any comments — only output valid TypeScript step definitions
-
-Gherkin Feature:
-${gherkinContent}`;
+  REQUIREMENTS:
+  - Use: import { Given, When, Then } from '@cucumber/cucumber';
+  - Use: import { expect } from '@playwright/test';
+  - Use: import type { CustomWorld } from '../support/world';
+  - Each step function must be declared with (this: CustomWorld, ...args)
+  - Use 'this.page' for all Playwright actions and selectors
+  - Replace all quoted text (e.g., "Delete User") with {string} in step definitions and pass as function parameters
+  - Use string arguments to dynamically construct selectors, e.g., [data-testid="\${label}-button"]
+  - Use realistic form field interaction: e.g., await this.page.fill('[data-testid="username-input"]', '...')
+  - Use data-testid attributes in selectors (e.g., [data-testid="role-select"])
+  - Avoid placeholder comments (e.g., “// fill in details”) — write real Playwright commands instead
+  - Wait for page transitions using: await this.page.waitForLoadState('networkidle')
+  - Use try/catch blocks in every step and throw helpful error messages
+  - For Then steps: assert visibility or content with expect()
+  - DO NOT use markdown, backticks, or any comments — only output valid TypeScript step definitions
+  
+  Gherkin Feature:
+  ${gherkinContent}`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4',
