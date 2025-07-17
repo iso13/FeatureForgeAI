@@ -1,4 +1,4 @@
-@validateAIMedicalScribe @no-browser @hipaa @high-risk
+@validateAIMedicalScribe @no-browser @hipaa @high-risk @wip
 Feature: AI assistant summarizes clinical encounters for providers  
   As a healthcare provider,  
   I want an AI agent to transcribe and summarize patient visits,  

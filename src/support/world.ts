@@ -138,10 +138,18 @@ class PlaywrightWorld extends World implements CustomWorld {
     const slowMo = options.slowMo ?? 100;
 
     this.browser = await chromium.launch({ headless, slowMo });
-    this.context = await this.browser.newContext(options);
-    this.page = await this.context.newPage();
-    this.basePage = new DefaultPage(this.page);
 
+    this.context = await this.browser.newContext({
+      ...options,
+      permissions: ['microphone'], // ✅ auto-allow microphone
+      baseURL: 'https://app.sully.ai',
+      viewport: { width: 1280, height: 800 },
+    });
+
+    this.page = await this.context.newPage();
+    await this.page.goto('https://app.sully.ai');
+
+    this.basePage = new DefaultPage(this.page);
     console.log(`Browser launched with headless=${headless}`);
   }
 }

@@ -26,7 +26,7 @@ Given('I go to the following {string}', {timeout: 60_000}, async function(this: 
   }
   
   try {
-    await this.page.goto(url, { waitUntil: 'networkidle' });
+    await this.page.goto(url, { waitUntil: 'load' });
     console.log(`Successfully navigated to: ${url}`);
   } catch (error) {
     console.error(`Error navigating to ${url}:`, error);

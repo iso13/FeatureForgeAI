@@ -72,11 +72,12 @@ async function generateFeatureFile(featureTitle: string, userStory: string, scen
 REQUIREMENTS:
 - Tag the feature with: ${tag}
 - Title: ${featureTitle}
-- User Story: ${userStory}
+- On the line immediately after the Feature title, include the user story exactly as provided: "${userStory}"
+- Do NOT include any prefix like "User Story:"
 - Include exactly ${scenarioCount} scenarios
 - Use a Background section for shared Given steps
 - All steps must use declarative formatting (e.g., "When the user submits the action")
-- Output only valid Gherkin, no explanations or markdown
+- Output only valid Gherkin, no explanations, markdown, or comments
 
 Output the feature file now.`;
 
