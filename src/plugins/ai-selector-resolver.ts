@@ -11,7 +11,7 @@
 
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 dotenv.config();
 

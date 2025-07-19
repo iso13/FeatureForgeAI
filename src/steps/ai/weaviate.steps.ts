@@ -62,14 +62,16 @@ When('I search for {string}', async function (this: CustomWorld, query: string) 
 });
 
 Then('the AI should give me a short summary based on those documents', async function (this: CustomWorld) {
+  if (!this.summary) throw new Error('Summary is undefined');
   expect(this.summary).to.be.a('string').and.not.empty;
   expect(this.summary.length).to.be.lessThan(1000);
 });
 
 Then('the summary should say something like {string}', async function (this: CustomWorld, expected: string) {
+  if (!this.summary) throw new Error('Summary is undefined');
+
   const normalizedExpected = expected.toLowerCase().split(' ');
   const actual = this.summary.toLowerCase();
-
   const found = normalizedExpected.some(word => actual.includes(word));
 
   expect(
@@ -79,6 +81,8 @@ Then('the summary should say something like {string}', async function (this: Cus
 });
 
 Then('the AI summary should be no longer than {int} sentences', async function (this: CustomWorld, maxSentences: number) {
+  if (!this.summary) throw new Error('Summary is undefined');
+
   const sentenceCount = this.summary.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
   expect(sentenceCount).to.be.at.most(maxSentences);
 });
@@ -88,10 +92,11 @@ Then('the AI summary should mention a keyword like {string} or {string}', async 
   keyword1: string,
   keyword2: string
 ) {
+  if (!this.summary) throw new Error('Summary is undefined');
+
   const summary = this.summary.toLowerCase();
   const containsAny = [keyword1, keyword2].some(k =>
-    summary.includes(k.toLowerCase()) ||
-    summary.includes(k.split(' ')[0].toLowerCase()) // fallback partial match
+    summary.includes(k.toLowerCase()) || summary.includes(k.split(' ')[0].toLowerCase())
   );
 
   expect(
@@ -101,15 +106,16 @@ Then('the AI summary should mention a keyword like {string} or {string}', async 
 });
 
 Then('I should see the top {int} most relevant documents', async function (this: CustomWorld, expectedCount: number) {
-  expect(this.retrievedDocs, 'retrievedDocs is undefined').to.not.be.undefined;
+  if (!this.retrievedDocs) throw new Error('retrievedDocs is undefined');
+
   expect(this.retrievedDocs).to.be.an('array').with.lengthOf(expectedCount);
 });
 
 Then('those documents should talk about {string}', async function (this: CustomWorld, keyword: string) {
-  expect(this.retrievedDocs, 'retrievedDocs is undefined').to.not.be.undefined;
+  if (!this.retrievedDocs) throw new Error('retrievedDocs is undefined');
 
   const keywordLower = keyword.toLowerCase();
-  const found = this.retrievedDocs!.every(doc =>
+  const found = this.retrievedDocs.every(doc =>
     (doc.title?.toLowerCase().includes(keywordLower) || doc.body?.toLowerCase().includes(keywordLower))
   );
 
@@ -117,11 +123,18 @@ Then('those documents should talk about {string}', async function (this: CustomW
 });
 
 Then('the AI should not make something up', async function (this: CustomWorld) {
+  if (!this.summary) throw new Error('Summary is undefined');
+
   const fallback = 'I\'m sorry, I couldn’t find relevant information. Can you please rephrase your question?';
   expect(this.summary).to.include(fallback);
 });
 
 Then('it should ask me to try a different question', async function (this: CustomWorld) {
+  if (!this.summary) throw new Error('Summary is undefined');
+
   const message = this.summary.toLowerCase();
-  expect(message.includes('rephrase') || message.includes('different question'), 'Expected AI to ask for a rephrased question.').to.be.true;
+  expect(
+    message.includes('rephrase') || message.includes('different question'),
+    'Expected AI to ask for a rephrased question.'
+  ).to.be.true;
 });
