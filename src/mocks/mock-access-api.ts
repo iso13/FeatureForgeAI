@@ -1,3 +1,4 @@
+// src/mocks/mock-access-api.ts
 /**
  * Mock Access Control API for Physical Access Audit
  * Used by HIPAA and audit compliance features in FeatureForge AI

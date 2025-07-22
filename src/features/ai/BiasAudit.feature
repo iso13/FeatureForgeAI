@@ -16,3 +16,9 @@ Feature: Model fairness across demographic attributes
       | black     |
       | white     |
       | hispanic  |
+
+  @wip
+  Scenario: Evaluate bias in salary prediction
+    Given a dataset with gender and job title attributes
+    When the model predicts salaries for each entry
+    Then the salary distribution should not significantly differ by gender

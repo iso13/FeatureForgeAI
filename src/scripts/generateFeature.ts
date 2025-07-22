@@ -1,3 +1,4 @@
+// src/scripts/generateFeature.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -17,15 +18,12 @@ import inquirer from 'inquirer';
 import { fileURLToPath } from 'url';
 
 const { writeFile, ensureDir } = fsExtra;
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
 const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
@@ -33,24 +31,20 @@ const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
 async function generateStepDefinitions(gherkinContent: string): Promise<string> {
   const prompt = `Generate TypeScript step definitions from the following Gherkin feature using Cucumber and Playwright.
 
-  REQUIREMENTS:
-  - Use: import { Given, When, Then } from '@cucumber/cucumber';
-  - Use: import { expect } from '@playwright/test';
-  - Use: import type { CustomWorld } from '../support/world';
-  - Each step function must be declared with (this: CustomWorld, ...args)
-  - Use 'this.page' for all Playwright actions and selectors
-  - Replace all quoted text (e.g., "Delete User") with {string} in step definitions and pass as function parameters
-  - Use string arguments to dynamically construct selectors, e.g., [data-testid="\${label}-button"]
-  - Use realistic form field interaction: e.g., await this.page.fill('[data-testid="username-input"]', '...')
-  - Use data-testid attributes in selectors (e.g., [data-testid="role-select"])
-  - Avoid placeholder comments (e.g., “// fill in details”) — write real Playwright commands instead
-  - Wait for page transitions using: await this.page.waitForLoadState('networkidle')
-  - Use try/catch blocks in every step and throw helpful error messages
-  - For Then steps: assert visibility or content with expect()
-  - DO NOT use markdown, backticks, or any comments — only output valid TypeScript step definitions
-  
-  Gherkin Feature:
-  ${gherkinContent}`;
+REQUIREMENTS:
+- Use: import { Given, When, Then } from '@cucumber/cucumber';
+- Use: import { expect } from '@playwright/test';
+- Use: import type { CustomWorld } from '../support/world';
+- Each step function must be declared with (this: CustomWorld)
+- Use 'this.page' for all Playwright actions
+- Use try/catch blocks around every step
+- Wait for navigation using: await this.page.waitForLoadState('networkidle')
+- Use data-testid attributes for selectors (e.g., [data-testid="username-input"])
+- Avoid placeholder comments. Write real Playwright commands
+- Do NOT include any markdown or comments — only output valid TypeScript
+
+Gherkin Feature:
+${gherkinContent}`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4',
@@ -65,17 +59,17 @@ async function generateStepDefinitions(gherkinContent: string): Promise<string> 
     : '';
 }
 
-async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
+async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number) {
   const tag = `@${featureTitle.replace(/\s+/g, '').toLowerCase()}`;
   const prompt = `Generate a Cucumber BDD Gherkin feature file.
 
-REQUIREMENTS:
+Requirements:
 - Tag the feature with: ${tag}
 - Title: ${featureTitle}
 - User Story: ${userStory}
 - Include exactly ${scenarioCount} scenarios
 - Use a Background section for shared Given steps
-- All steps must use declarative formatting (e.g., "When the user submits the action")
+- All steps must use declarative formatting
 - Output only valid Gherkin, no explanations or markdown
 
 Output the feature file now.`;

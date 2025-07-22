@@ -1,3 +1,4 @@
+// src/plugins/ai-selector-resolver.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -11,7 +12,7 @@
 
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 dotenv.config();
 

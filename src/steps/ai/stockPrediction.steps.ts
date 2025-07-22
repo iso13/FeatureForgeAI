@@ -1,3 +1,4 @@
+// src/steps/ai/stockPrediction.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// Step definitions
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { StockPricePredictor } from '../../support/predictor/stockPricePredictor';

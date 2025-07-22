@@ -1,3 +1,4 @@
+// src/support/hooks.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,13 +10,13 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { Before, After, BeforeStep, AfterStep, Status, AfterAll } from '@cucumber/cucumber';
+// SPDX-License-Identifier: BSL-1.1
+import { Before, After, BeforeStep, AfterStep, Status, AfterAll, setDefaultTimeout } from '@cucumber/cucumber';
 import type { ITestCaseHookParameter } from '@cucumber/cucumber';
 import type { CustomWorld } from './world';
 import * as tracerModule from './tracer';
 import * as path from 'path';
 import * as fs from 'fs';
-import { setDefaultTimeout } from '@cucumber/cucumber';
 import { format } from 'date-fns';
 
 setDefaultTimeout(10_000);
@@ -24,11 +25,9 @@ const { tracer, shutdownTelemetry } = tracerModule;
 
 const isTracingEnabled = process.env.ENABLE_TRACING === 'true';
 const isVerbose = process.env.VERBOSE === 'true';
-const isVideoEnabled = process.env.ENABLE_VIDEO === 'true';
 
 if (isVerbose) {
   console.log(`OpenTelemetry is ${isTracingEnabled ? 'enabled' : 'disabled'}`);
-  console.log(`Video recording is ${isVideoEnabled ? 'enabled' : 'disabled'}`);
 }
 
 Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
@@ -48,46 +47,15 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
   }
 
   const hasNoBrowserTag = scenario.pickle.tags.some(tag => tag.name === '@no-browser');
-  if (isVerbose) {
-    console.log(`Starting scenario: ${this.scenarioName} (Feature: ${this.featureName})`);
-    if (hasNoBrowserTag) console.log('Detected @no-browser tag. Skipping browser launch.');
-  }
-
-  // ✅ Sully AI agent mocks
-  this.api = {
-    connectAudioStream: async (room: string) => {
-      return { room, streamId: 'mock-stream-id' };
-    },
-    connectEMR: async () => {
-      if (!this.emr) {
-        this.emr = {
-          status: 'connected',
-          storeVisitSummary: async (summary) => {
-            console.log('✅ Mock summary stored:', summary);
-            return { success: true };
-          },
-        };
-      }
-    },
-    getTranscript: async (session: string) => {
-      return `Transcript for session ${session}`;
-    },
-  };
 
   this.healthAgent = {
-    transcribe: async (stream: any) => {
-      return `Transcribed summary of stream ${stream.room}`;
-    },
-    extractClinicalData: async (summary: string) => {
-      return {
-        symptoms: ['fatigue', 'fever'],
-        history: 'Patient reports 3 days of flu-like symptoms',
-        plan: 'Rest and fluids recommended',
-      };
-    },
-    tagICD10: async (data: any) => {
-      return { codes: ['R53.83', 'R50.9'] };
-    },
+    transcribe: async (stream: any) => `Transcribed summary of stream ${stream.room}`,
+    extractClinicalData: async () => ({
+      symptoms: ['fatigue', 'fever'],
+      history: 'Patient reports 3 days of flu-like symptoms',
+      plan: 'Rest and fluids recommended',
+    }),
+    tagICD10: async () => ({ codes: ['R53.83', 'R50.9'] }),
   };
 
   try {
@@ -103,14 +71,10 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
 
     if (hasNoBrowserTag) return;
 
-    const contextOptions = isVideoEnabled
-      ? { headless: false, recordVideo: { dir: 'reports/videos' } }
-      : { headless: false };
-
+    const contextOptions = { headless: false };
     await this.launchBrowser(contextOptions);
 
     if (!this.page) throw new Error('Page is still undefined after launching browser');
-    if (isVerbose) console.log('Browser and page initialized');
   } catch (error) {
     console.error('Browser initialization failed:', error);
     throw error;
@@ -118,21 +82,17 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
 });
 
 BeforeStep(function (this: CustomWorld, step) {
-  const stepText = step.pickleStep.text;
-  if (isVerbose) console.log(`Starting step: ${stepText}`);
-
+  if (isVerbose) console.log(`Starting step: ${step.pickleStep.text}`);
   try {
     if (isTracingEnabled && tracer) {
-      const spanName = `${this.featureName} - ${stepText}`;
-      this.stepSpan = tracer.startSpan(spanName, {
+      this.stepSpan = tracer.startSpan(`${this.featureName} - ${step.pickleStep.text}`, {
         attributes: {
           'cucumber.feature': this.featureName,
-          'cucumber.step': stepText,
+          'cucumber.step': step.pickleStep.text,
           'cucumber.scenario': this.scenarioName,
           'test.framework': 'cucumber',
         },
       });
-      if (isVerbose) console.log('✓ Created step span');
     }
   } catch (err) {
     console.warn('Failed to create step span:', err);
@@ -141,77 +101,42 @@ BeforeStep(function (this: CustomWorld, step) {
 
 AfterStep(function (this: CustomWorld) {
   try {
-    if (isTracingEnabled && this.stepSpan) {
-      this.stepSpan.end();
-      if (isVerbose) console.log('✓ Step span ended');
-    }
+    if (isTracingEnabled && this.stepSpan) this.stepSpan.end();
   } catch (err) {
     console.warn('Failed to end step span:', err);
   }
 });
 
-After(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
+After({ timeout: 30_000 }, async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
   const isFailed = scenario.result?.status === Status.FAILED;
   const hasNoBrowserTag = scenario.pickle.tags.some(tag => tag.name === '@no-browser');
 
   if (isTracingEnabled && this.testSpan) {
     this.testSpan.setAttribute('test.status', scenario.result?.status || 'unknown');
     this.testSpan.end();
-    if (isVerbose) console.log('✓ Test span ended');
-  }
-
-  if (isVerbose && hasNoBrowserTag) {
-    console.log(`Skipping screenshot and video for @no-browser scenario: ${this.scenarioName}`);
   }
 
   if (isFailed && this.page && !hasNoBrowserTag) {
     const timestamp = format(new Date(), 'yyyyMMdd-HHmmss');
-    const feature = this.featureName?.replace(/\s+/g, '_') || 'UnknownFeature';
-    const scenarioName = this.scenarioName?.replace(/\s+/g, '_') || 'UnknownScenario';
-    const screenshotName = `${feature}_${scenarioName}_${timestamp}.png`;
-    const screenshotPath = path.join('reports/screenshots', screenshotName);
+    const screenshotPath = path.join(
+      'reports/screenshots',
+      `${this.featureName?.replace(/\s+/g, '_')}_${this.scenarioName?.replace(/\s+/g, '_')}_${timestamp}.png`,
+    );
 
     try {
       await fs.promises.mkdir(path.dirname(screenshotPath), { recursive: true });
       await this.page.screenshot({ path: screenshotPath, fullPage: true });
-      console.log(`Screenshot saved to: ${screenshotPath}`);
-
       const imageBuffer = await fs.promises.readFile(screenshotPath);
-      const base64Image = imageBuffer.toString('base64');
-      this.attach(base64Image, 'image/png');
+      this.attach(imageBuffer.toString('base64'), 'image/png');
     } catch (err) {
       console.error('Failed to capture or attach screenshot:', err);
     }
   }
 
-  if (this.page && this.page.video && isVideoEnabled && !hasNoBrowserTag) {
-    try {
-      console.log('Waiting before closing page to extend video recording...');
-      await this.page.waitForTimeout(3000);
-
-      const videoHandle = this.page.video();
-      await this.page.close();
-
-      const videoPath = await videoHandle?.path();
-      if (videoPath) {
-        const destPath = path.join('reports/videos', path.basename(videoPath));
-        await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
-        await fs.promises.copyFile(videoPath, destPath);
-        console.log(`Video saved to: ${destPath}`);
-      } else {
-        console.warn('No video path returned');
-      }
-    } catch (err) {
-      console.error('Failed to retrieve video:', err);
-    }
-  }
-
-  // ✅ Ensure proper resource cleanup
   try {
     if (this.page && !hasNoBrowserTag) await this.page.close();
     if (this.context && !hasNoBrowserTag) await this.context.close();
     if (this.browser && !hasNoBrowserTag) await this.browser.close();
-    if (isVerbose) console.log('✓ Browser, context, and page closed');
   } catch (err) {
     console.warn('Failed to close browser resources:', err);
   }
@@ -222,11 +147,7 @@ AfterAll(async function () {
   try {
     await new Promise(resolve => setTimeout(resolve, 2000));
     await shutdownTelemetry();
-
-    setTimeout(() => {
-      if (isVerbose) console.log('Forcing process to exit');
-      process.exit(0);
-    }, 1000);
+    setTimeout(() => process.exit(0), 1000);
   } catch (err) {
     console.error('Error shutting down OpenTelemetry:', err);
     setTimeout(() => process.exit(1), 100);

@@ -1,3 +1,4 @@
+// src/steps/ai/bias.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -75,14 +76,14 @@ Then(
     const delta = Math.abs(actual - baseline);
     const threshold = 0.06;
 
-    // ✅ Attach diagnostic data to report
+    // Attach diagnostic data to report
     const log = `
       Demographic: ${this.inputSample?.demographic}
       Model Output: ${actual}
       Baseline: ${baseline}
       Delta: ${delta}
       Threshold: ${threshold}
-      Result: ${delta <= threshold ? '✅ PASS' : '❌ FAIL'}
+      Result: ${delta <= threshold ? 'PASS' : 'FAIL'}
     `.trim();
 
     this.attach(log, 'text/plain');

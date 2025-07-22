@@ -1,3 +1,4 @@
+// src/scripts/featureGenerator.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// src/scripts/featureGenerator.ts
 // It prompts the user for feature details, generates Gherkin content, and writes both the feature file using OpenAI
 import OpenAI from 'openai';
 import fsExtra from 'fs-extra';

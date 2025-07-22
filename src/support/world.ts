@@ -1,3 +1,15 @@
+// src/support/world.ts
+/**
+ * FeatureForge AI
+ * Copyright (c) 2024–2025 David Tran
+ * Licensed under the Business Source License 1.1
+ * See LICENSE.txt for full terms
+ * Change Date: January 1, 2029 (license converts to MIT)
+ * Contact: davidtran@featuregen.ai
+ */
+
+// SPDX-License-Identifier: BSL-1.1
+
 import { setWorldConstructor, World } from '@cucumber/cucumber';
 import type { IWorldOptions } from '@cucumber/cucumber';
 import type {
@@ -138,10 +150,15 @@ class PlaywrightWorld extends World implements CustomWorld {
     const slowMo = options.slowMo ?? 100;
 
     this.browser = await chromium.launch({ headless, slowMo });
-    this.context = await this.browser.newContext(options);
+
+    this.context = await this.browser.newContext({
+      ...options,
+      permissions: ['microphone'],
+      viewport: { width: 1280, height: 800 },
+    });
+
     this.page = await this.context.newPage();
     this.basePage = new DefaultPage(this.page);
-
     console.log(`Browser launched with headless=${headless}`);
   }
 }

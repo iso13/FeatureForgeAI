@@ -1,3 +1,4 @@
+// src/scripts/agent.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -8,8 +9,6 @@
  */
 
 // SPDX-License-Identifier: BSL-1.1
-
-// src/scripts/agent.ts
 
 import { execSync } from 'child_process';
 import { generateAgenticFeature } from '../services/agenticGenerator';

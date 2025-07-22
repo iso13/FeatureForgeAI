@@ -1,6 +1,5 @@
 @HiL @deviceAlertMonitor @no-browser
 Feature: Device alert validation for heart rate monitor
-
   As a QA engineer
   I want to validate that the device correctly raises alerts when heart rate exceeds thresholds
   So that patient safety is ensured during remote monitoring

@@ -1,3 +1,4 @@
+// src/services/agenticGenerator.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -8,8 +9,6 @@
  */
 
 // SPDX-License-Identifier: BSL-1.1
-
-// src/services/agenticGenerator.ts
 
 import { generateGherkinPrompt } from '../utils/gherkinPrompt';
 import { generateStepDefinitions } from '../utils/stepWriter';

@@ -10,7 +10,7 @@ Feature: Execute Conditional Logic
     Then it should assign the case to the Billing Queue
 
   Scenario: Skip survey if "Do Not Email" is true
-    Given the contact’s preferences include "Do Not Email"
+    Given the contacts preferences include "Do Not Email"
     When follow-up logic is evaluated
     Then the agent should skip sending a survey
 

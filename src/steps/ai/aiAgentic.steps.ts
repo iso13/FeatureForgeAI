@@ -1,3 +1,4 @@
+// src/steps/ai/aiAgentic.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -50,6 +51,7 @@ Then('it should write a summary of the capital call', async function (this: Cust
 
 Then('make sure the summary follows all compliance rules', async function (this: CustomWorld) {
   await withSpan('validateCompliance', async () => {
+    if (!this.summary) throw new Error('Summary is undefined');
     const valid = validateCompliance(this.summary);
     expect(valid).to.be.true;
   }, {}, this.stepSpan);
@@ -57,6 +59,7 @@ Then('make sure the summary follows all compliance rules', async function (this:
 
 Then('send the message to each investor', async function (this: CustomWorld) {
   await withSpan('sendInvestorNotifications', async () => {
+    if (!this.summary) throw new Error('Summary is undefined');
     sendNotifications(this.investors || [], this.summary, this.notificationLogs || []);
   }, {}, this.stepSpan);
 });
