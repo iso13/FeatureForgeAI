@@ -1,3 +1,4 @@
+// src/steps/a11y.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran

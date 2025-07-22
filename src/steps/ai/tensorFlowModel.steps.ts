@@ -1,3 +1,4 @@
+// src/steps/ai/tensorFlowModel.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// Import Cucumber steps for defining Gherkin steps and Playwright's expect assertion
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 

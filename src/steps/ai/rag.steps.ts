@@ -1,3 +1,4 @@
+// src/steps/ai/rag.steps.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// src/steps/rag.steps.ts
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from 'chai';
 import { RAGEngine } from '../../ai/ragHelper';

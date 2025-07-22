@@ -1,3 +1,4 @@
+// src/pages/defaultPage.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// src/pages/defaultPage.ts
 import type { Page } from 'playwright';
 import { BasePage } from './BasePage';
 

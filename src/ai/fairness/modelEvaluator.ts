@@ -1,3 +1,4 @@
+// src/ai/fairness/modelEvaluator.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran

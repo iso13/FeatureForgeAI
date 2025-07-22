@@ -1,3 +1,15 @@
+// src/steps/hipaa/hipaa.steps.ts
+/**
+ * FeatureForge AI
+ * Copyright (c) 2024–2025 David Tran
+ * Licensed under the Business Source License 1.1
+ * See LICENSE.txt for full terms
+ * Change Date: January 1, 2029 (license converts to MIT)
+ * Contact: davidtran@featuregen.ai
+ */
+
+// SPDX-License-Identifier: BSL-1.1
+
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import type { CustomWorld } from '../../support/world';

@@ -1,3 +1,4 @@
+// src/helpers/filewriter.ts
 /**
  * FeatureForge AI
  * Copyright (c) 2024–2025 David Tran
@@ -9,7 +10,6 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-// src/utils/fileWriter.ts
 import fs from 'fs-extra';
 import path from 'path';
 

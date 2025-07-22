@@ -1,3 +1,15 @@
+// src/support/world.ts
+/**
+ * FeatureForge AI
+ * Copyright (c) 2024–2025 David Tran
+ * Licensed under the Business Source License 1.1
+ * See LICENSE.txt for full terms
+ * Change Date: January 1, 2029 (license converts to MIT)
+ * Contact: davidtran@featuregen.ai
+ */
+
+// SPDX-License-Identifier: BSL-1.1
+
 import { setWorldConstructor, World } from '@cucumber/cucumber';
 import type { IWorldOptions } from '@cucumber/cucumber';
 import type {
@@ -141,14 +153,11 @@ class PlaywrightWorld extends World implements CustomWorld {
 
     this.context = await this.browser.newContext({
       ...options,
-      permissions: ['microphone'], // ✅ auto-allow microphone
-      baseURL: 'https://app.sully.ai',
+      permissions: ['microphone'],
       viewport: { width: 1280, height: 800 },
     });
 
     this.page = await this.context.newPage();
-    await this.page.goto('https://app.sully.ai');
-
     this.basePage = new DefaultPage(this.page);
     console.log(`Browser launched with headless=${headless}`);
   }
