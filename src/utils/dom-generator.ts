@@ -18,8 +18,8 @@ interface InteractiveElement {
   type: string;
   text: string;
   action: string;
-  testId?: string;
-  role?: string;
+  testId?: string | undefined;
+  role?: string | undefined;
 }
 
 export class DOMGenerator {
@@ -172,73 +172,35 @@ export class DOMGenerator {
     const elementsData = await this.page.evaluate(() => {
       const elements: InteractiveElement[] = [];
       
-      // Enhanced selectors for modern web apps - especially for Testing Playground
-      const selectors = [
+      // Priority selectors - most specific first
+      const prioritySelectors = [
         // Test attributes (highest priority)
         '[data-testid]',
         '[data-test]',
         '[data-cy]',
         '[test-id]',
-        '[data-qa]',
-        // Semantic HTML
-        'button',
-        'input',
-        'textarea',
-        'select',
-        'a[href]',
-        // ARIA roles
-        '[role="button"]',
-        '[role="textbox"]',
-        '[role="combobox"]',
-        '[role="link"]',
-        '[role="menuitem"]',
-        '[role="tab"]',
-        '[role="tabpanel"]',
-        // Interactive patterns
-        '[onclick]',
-        '[onsubmit]',
-        '[tabindex]',
-        // Class-based (common patterns)
-        '.btn',
-        '.button',
-        '.link',
-        '.input',
-        '.form-control',
-        '.field',
-        // React/Vue common patterns
-        '[class*="button"]',
-        '[class*="btn"]',
-        '[class*="input"]',
-        '[class*="field"]',
-        '[class*="control"]',
-        '[class*="editor"]',
-        '[class*="playground"]',
-        // Form elements specifically
-        'form input',
-        'form button',
-        'form select',
-        'form textarea',
-        // Modern CSS patterns
-        '[type="submit"]',
-        '[type="button"]',
-        '[type="text"]',
-        '[type="email"]',
-        '[type="password"]',
-        '[type="search"]',
-        // Testing Playground specific
-        '.CodeMirror',
-        '[contenteditable]',
-        '.cm-editor',
-        // Generic interactive
-        '[class*="interactive"]',
-        '[class*="clickable"]',
-        '[style*="cursor: pointer"]'
+        '[data-qa]'
       ];
 
-      const processedElements = new Set<string>();
-      let elementId = 0;
+      const standardSelectors = [
+        // Semantic HTML
+        'button',
+        'input[type="text"]',
+        'input[type="email"]', 
+        'input[type="password"]',
+        'input[type="search"]',
+        'input[type="submit"]',
+        'input[type="button"]',
+        'textarea',
+        'select',
+        'a[href]'
+      ];
 
-      selectors.forEach(selector => {
+      const processedTestIds = new Set<string>();
+      const processedElements = new Set<string>();
+
+      // Process priority selectors first (test attributes)
+      prioritySelectors.forEach(selector => {
         try {
           const elements_found = document.querySelectorAll(selector);
           
@@ -247,30 +209,33 @@ export class DOMGenerator {
             
             // Skip hidden or tiny elements
             const rect = element.getBoundingClientRect();
-            if (rect.width < 5 || rect.height < 5) return;
+            if (rect.width < 10 || rect.height < 10) return;
             
             const style = window.getComputedStyle(element);
             if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
 
-            // Create unique identifier for deduplication
-            const uniqueId = `${selector}-${rect.top.toFixed(0)}-${rect.left.toFixed(0)}-${rect.width.toFixed(0)}`;
-            if (processedElements.has(uniqueId)) return;
-            processedElements.add(uniqueId);
-
-            // Get element properties
-            const tagName = element.tagName.toLowerCase();
+            // Get test ID
             const testId = element.getAttribute('data-testid') || 
                           element.getAttribute('data-test') || 
                           element.getAttribute('data-cy') ||
                           element.getAttribute('test-id') ||
                           element.getAttribute('data-qa') ||
                           undefined;
+
+            // Skip if we already processed this test ID
+            if (testId && processedTestIds.has(testId)) return;
+            if (testId) processedTestIds.add(testId);
+
+            // Get element properties
+            const tagName = element.tagName.toLowerCase();
+            const inputType = (element as HTMLInputElement).type || '';
             
-            const role = element.getAttribute('role') || element.getAttribute('aria-label') || undefined;
-            const type = (element as HTMLInputElement).type || tagName;
-            const id = element.id;
-            const className = element.className;
-            
+            // Determine correct type
+            let elementType = tagName;
+            if (tagName === 'input' && inputType) {
+              elementType = inputType === 'submit' || inputType === 'button' ? 'button' : 'input';
+            }
+
             // Get meaningful text with multiple fallbacks
             let text = element.getAttribute('aria-label') ||
                       element.getAttribute('title') ||
@@ -278,73 +243,153 @@ export class DOMGenerator {
                       element.getAttribute('placeholder') ||
                       (element as HTMLInputElement).value ||
                       (element.textContent?.trim() || '') ||
+                      testId ||
                       '';
 
-            // Clean and limit text length
+            // Clean text
             text = (text || '').replace(/\s+/g, ' ').slice(0, 60).trim();
-            
-            // Generate priority-based selector
-            let selector_final = '';
-            if (testId) {
-              const attr = element.hasAttribute('data-testid') ? 'data-testid' : 
-                          element.hasAttribute('data-test') ? 'data-test' : 
-                          element.hasAttribute('data-cy') ? 'data-cy' : 'test-id';
-              selector_final = `[${attr}="${testId}"]`;
-            } else if (id) {
-              selector_final = `#${id}`;
-            } else if (role) {
-              selector_final = `[role="${role}"]`;
-            } else if (className && className.split(' ').length <= 3) {
-              const classes = className.split(' ').filter(c => c.length > 2).slice(0, 2);
-              if (classes.length > 0) {
-                selector_final = `.${classes.join('.')}`;
-              }
-            } else {
-              selector_final = tagName;
-            }
+
+            // Generate selector
+            const attr = element.hasAttribute('data-testid') ? 'data-testid' : 
+                        element.hasAttribute('data-test') ? 'data-test' : 
+                        element.hasAttribute('data-cy') ? 'data-cy' : 
+                        element.hasAttribute('test-id') ? 'test-id' :
+                        'data-qa';
+            const selector_final = `[${attr}="${testId}"]`;
 
             // Determine action type based on element characteristics
             let action = 'interact with';
             
-            if (tagName === 'button' || type === 'submit' || type === 'button' || role === 'button') {
+            if (tagName === 'button' || inputType === 'submit' || inputType === 'button') {
               action = 'click';
+              elementType = 'button'; // Force correct type
             } else if (tagName === 'a' && element.hasAttribute('href')) {
               action = 'click';
-            } else if (['input', 'textarea'].includes(tagName) && !['checkbox', 'radio', 'submit', 'button'].includes(type)) {
+            } else if (tagName === 'input' && ['text', 'email', 'password', 'search'].includes(inputType)) {
               action = 'enter text in';
-            } else if (tagName === 'select' || role === 'combobox') {
+              elementType = 'input'; // Force correct type
+            } else if (tagName === 'textarea') {
+              action = 'enter text in';
+            } else if (tagName === 'select') {
               action = 'select option from';
-            } else if (type === 'checkbox' || type === 'radio') {
+            } else if (inputType === 'checkbox' || inputType === 'radio') {
               action = 'select';
-            } else if (element.hasAttribute('onclick') || style.cursor === 'pointer') {
-              action = 'click';
-            } else if (element.hasAttribute('contenteditable') || className.includes('editor')) {
-              action = 'enter text in';
             }
 
-            // Use element text or generate descriptive name
-            let finalText = text || testId || id || '';
-            
-            // Special naming for Testing Playground elements
-            if (className.includes('CodeMirror') || className.includes('cm-editor')) {
-              finalText = 'code editor';
-            } else if (className.includes('playground')) {
-              finalText = 'playground area';
-            } else if (!finalText) {
-              finalText = `${tagName} element ${++elementId}`;
+            // Special handling for SauceDemo elements
+            if (testId === 'login-button') {
+              elementType = 'button';
+              action = 'click';
+              text = text || 'Login';
+            } else if (testId === 'username') {
+              elementType = 'input';
+              action = 'enter text in';
+              text = text || 'Username';
+            } else if (testId === 'password') {
+              elementType = 'input';
+              action = 'enter text in';
+              text = text || 'Password';
             }
 
             elements.push({
               selector: selector_final,
-              type: tagName,
-              text: finalText,
+              type: elementType,
+              text: text || testId || `${elementType} element`,
               action,
               testId,
-              role
+              role: element.getAttribute('role') || undefined
             });
           });
         } catch (e) {
-          // Skip selectors that cause errors
+          console.warn(`Selector "${selector}" caused error:`, e);
+        }
+      });
+
+      // Process standard selectors for elements without test IDs
+      standardSelectors.forEach(selector => {
+        try {
+          const elements_found = document.querySelectorAll(selector);
+          
+          elements_found.forEach((el) => {
+            const element = el as HTMLElement;
+            
+            // Skip if element already has a test ID (already processed)
+            const hasTestId = element.hasAttribute('data-testid') || 
+                             element.hasAttribute('data-test') || 
+                             element.hasAttribute('data-cy') ||
+                             element.hasAttribute('test-id') ||
+                             element.hasAttribute('data-qa');
+            if (hasTestId) return;
+
+            // Skip hidden or tiny elements
+            const rect = element.getBoundingClientRect();
+            if (rect.width < 10 || rect.height < 10) return;
+            
+            const style = window.getComputedStyle(element);
+            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+
+            // Create unique identifier for deduplication
+            const uniqueId = `${selector}-${rect.top.toFixed(0)}-${rect.left.toFixed(0)}`;
+            if (processedElements.has(uniqueId)) return;
+            processedElements.add(uniqueId);
+
+            // Get element properties
+            const tagName = element.tagName.toLowerCase();
+            const inputType = (element as HTMLInputElement).type || '';
+            const id = element.id;
+            
+            // Determine correct type
+            let elementType = tagName;
+            if (tagName === 'input' && inputType) {
+              elementType = inputType === 'submit' || inputType === 'button' ? 'button' : 'input';
+            }
+
+            // Get meaningful text
+            let text = element.getAttribute('aria-label') ||
+                      element.getAttribute('title') ||
+                      element.getAttribute('placeholder') ||
+                      (element as HTMLInputElement).value ||
+                      (element.textContent?.trim() || '') ||
+                      id ||
+                      '';
+
+            text = (text || '').replace(/\s+/g, ' ').slice(0, 60).trim();
+
+            // Generate selector
+            let selector_final = '';
+            if (id) {
+              selector_final = `#${id}`;
+            } else {
+              selector_final = selector;
+            }
+
+            // Determine action
+            let action = 'interact with';
+            if (tagName === 'button' || inputType === 'submit' || inputType === 'button') {
+              action = 'click';
+              elementType = 'button';
+            } else if (tagName === 'a') {
+              action = 'click';
+            } else if (tagName === 'input' && ['text', 'email', 'password', 'search'].includes(inputType)) {
+              action = 'enter text in';
+            } else if (tagName === 'textarea') {
+              action = 'enter text in';
+            } else if (tagName === 'select') {
+              action = 'select option from';
+            }
+
+            if (text) {
+              elements.push({
+                selector: selector_final,
+                type: elementType,
+                text: text,
+                action,
+                testId: undefined,
+                role: element.getAttribute('role') || undefined
+              });
+            }
+          });
+        } catch (e) {
           console.warn(`Selector "${selector}" caused error:`, e);
         }
       });
@@ -352,9 +397,11 @@ export class DOMGenerator {
       return elements;
     });
 
-    // Sort elements by priority and filter
-    const sortedElements = elementsData
-      .filter(el => el.text.length > 0)
+    // Remove duplicates and sort by priority
+    const uniqueElements = elementsData
+      .filter((el, index, arr) => 
+        arr.findIndex(e => e.testId === el.testId && e.selector === el.selector) === index
+      )
       .sort((a, b) => {
         // Priority: testId > button > input > others
         if (a.testId && !b.testId) return -1;
@@ -365,14 +412,14 @@ export class DOMGenerator {
         if (a.action !== 'click' && b.action === 'click') return 1;
         return 0;
       })
-      .slice(0, 20); // Increased limit for better coverage
+      .slice(0, 10); // Reasonable limit
 
     console.log('🎯 Element extraction details:');
-    sortedElements.forEach((el, i) => {
+    uniqueElements.forEach((el, i) => {
       console.log(`   ${i + 1}. ${el.type.toUpperCase()}: "${el.text}" (${el.action}) - ${el.selector}`);
     });
 
-    return sortedElements;
+    return uniqueElements;
   }
 
   private generateActionText(element: InteractiveElement): string {
@@ -391,129 +438,150 @@ export class DOMGenerator {
   }
 
   generateFeature(analysis: any, featureName: string): string {
-    console.log('🚀🚀🚀 ENHANCED GENERATEFEATURE CALLED with elements:', analysis.elements?.length);
-  console.log('🚀🚀🚀 Analysis object keys:', Object.keys(analysis));
+    console.log('🚀🚀🚀 ENHANCED GENERATEFEATURE CALLED');
+    console.log('   Elements array:', !!analysis.elements);
+    console.log('   Elements length:', analysis.elements?.length);
+    console.log('   Elements type:', typeof analysis.elements);
+    console.log('   Analysis keys:', Object.keys(analysis));
+    
+    // 🚨 FORCE DEBUG - Let's see what's actually in elements
+    if (analysis.elements) {
+      console.log('   Elements content:', JSON.stringify(analysis.elements.slice(0, 3), null, 2));
+    }
+    
     const tag = `@${featureName.replace(/\s+/g, '').toLowerCase()}`;
-    const isTestingPlayground = analysis.url?.includes('testing-playground.com');
     
-    console.log('🚀 ENHANCED GENERATOR ACTIVE! Elements found:', analysis.elements?.length || 0);
+    // 🚨 TEMPORARILY FORCE THE ENHANCED LOGIC
+    console.log('🚨 FORCING ENHANCED LOGIC FOR DEBUG');
     
-    if (!analysis.elements || analysis.elements.length === 0) {
-      // Generate a fallback feature for JavaScript-heavy sites
-      return `${tag}
-Feature: ${featureName}
-As a developer, I want to test ${analysis.title} functionality so that I can ensure the application works correctly
-
-Background:
-  Given I am on the "${analysis.title}" page
-  And the page has loaded completely
-
-Scenario: Page loads successfully
-  When I navigate to the application
-  Then the page should display the main interface
-  And all dynamic content should be loaded
-
-Scenario: Application is interactive
-  When the page finishes loading
-  Then I should be able to interact with the interface
-  And the application should respond to user actions
-
-Scenario: Basic functionality works
-  When I interact with page elements
-  Then the system should respond appropriately
-  And no errors should occur
-
-# Note: This is a JavaScript-heavy application
-# Manual analysis may be required to identify specific test scenarios
-# Consider adding data-testid attributes to elements for better testing`;
-    }
-
-    // Special handling for testing-playground.com
-    if (isTestingPlayground) {
-      return this.generateTestingPlaygroundFeature(analysis, featureName, tag);
-    }
-
     // Group elements by type for better scenario organization
-    const buttons = analysis.elements.filter((el: InteractiveElement) => 
+    const elements = analysis.elements || [];
+    const buttons = elements.filter((el: any) => 
       el.type === 'button' || el.action === 'click' || el.text.toLowerCase().includes('button'));
-    const inputs = analysis.elements.filter((el: InteractiveElement) => 
+    const inputs = elements.filter((el: any) => 
       el.action === 'enter text in' || el.type === 'input' || el.type === 'textarea');
-    const selects = analysis.elements.filter((el: InteractiveElement) => 
-      el.action === 'select option from' || el.action === 'select' || el.type === 'select');
+    
+    console.log(`   Buttons found: ${buttons.length}`);
+    console.log(`   Inputs found: ${inputs.length}`);
+    
+    if (buttons.length > 0) {
+      console.log('   Button details:', buttons.map((b: any) => `${b.type}:"${b.text}"`));
+    }
+    if (inputs.length > 0) {
+      console.log('   Input details:', inputs.map((i: any) => `${i.type}:"${i.text}"`));
+    }
 
     let scenarios = [];
 
-    // Generate comprehensive scenarios based on found elements
-    if (buttons.length > 0) {
-      const primaryButtons = buttons.slice(0, 3);
-      const buttonSteps = primaryButtons.map((btn: InteractiveElement) => 
-        `When I click the "${this.getElementName(btn)}"`
-      );
+    // Create realistic login scenario for SauceDemo
+    if (inputs.length >= 2 && buttons.length >= 1) {
+      const usernameField = inputs.find((input: any) => 
+        input.text.toLowerCase().includes('username') || 
+        input.testId?.toLowerCase().includes('username')
+      ) || inputs[0];
       
-      scenarios.push(`Scenario: Interact with primary interface elements
-${buttonSteps.map((step: string) => `  ${step}`).join('\n')}
-  Then the system should respond appropriately
-  And the interface should update accordingly`);
-    }
-
-    if (inputs.length > 0) {
-      const formSteps = inputs.slice(0, 3).map((input: InteractiveElement) => 
-        `When I provide "valid data" in the "${this.getElementName(input)}"`
-      );
+      const passwordField = inputs.find((input: any) => 
+        input.text.toLowerCase().includes('password') || 
+        input.testId?.toLowerCase().includes('password')
+      ) || inputs[1];
       
-      if (buttons.length > 0) {
-        const submitButton = buttons.find((b: InteractiveElement) => 
-          b.text.toLowerCase().includes('submit') || 
-          b.text.toLowerCase().includes('save') ||
-          b.text.toLowerCase().includes('send')
-        ) || buttons[0];
-        formSteps.push(`When I click the "${this.getElementName(submitButton)}"`);
-      }
+      const loginButton = buttons.find((btn: any) => 
+        btn.text.toLowerCase().includes('login') ||
+        btn.testId?.toLowerCase().includes('login')
+      ) || buttons[0];
 
-      scenarios.push(`Scenario: Complete form data entry
-${formSteps.map((step: string) => `  ${step}`).join('\n')}
-  Then the form should be processed successfully
-  And I should receive confirmation`);
-    }
+      // Generate random number of scenarios between 3 and 5
+      const numScenarios = Math.floor(Math.random() * 3) + 3; // 3, 4, or 5
+      console.log(`🎲 Generating ${numScenarios} scenarios randomly`);
 
-    // Add validation scenario if we have inputs
-    if (inputs.length > 0) {
-      scenarios.push(`Scenario: Handle invalid input data
-  When I provide "invalid data" in form fields
-  And I attempt to submit the form
+      // All possible scenarios
+      const allScenarios = [
+        {
+          name: 'Successful login with valid credentials',
+          content: `Scenario: Successful login with valid credentials
+  When I enter "standard_user" in the "${this.getElementName(usernameField)}" field
+  And I enter "secret_sauce" in the "${this.getElementName(passwordField)}" field
+  And I click the "${this.getElementName(loginButton)}" button
+  Then I should be redirected to the products page
+  And I should see the inventory list`
+        },
+        {
+          name: 'Login fails with invalid credentials',
+          content: `Scenario: Login fails with invalid credentials
+  When I enter "invalid_user" in the "${this.getElementName(usernameField)}" field
+  And I enter "wrong_password" in the "${this.getElementName(passwordField)}" field
+  And I click the "${this.getElementName(loginButton)}" button
+  Then I should see an error message
+  And I should remain on the login page`
+        },
+        {
+          name: 'Login validation with empty fields',
+          content: `Scenario: Login validation with empty fields
+  When I leave the "${this.getElementName(usernameField)}" field empty
+  And I leave the "${this.getElementName(passwordField)}" field empty
+  And I click the "${this.getElementName(loginButton)}" button
   Then I should see validation error messages
-  And the form should not be submitted`);
+  And the login button should remain disabled or show error`
+        },
+        {
+          name: 'Login attempt with locked out user',
+          content: `Scenario: Login attempt with locked out user
+  When I enter "locked_out_user" in the "${this.getElementName(usernameField)}" field
+  And I enter "secret_sauce" in the "${this.getElementName(passwordField)}" field
+  And I click the "${this.getElementName(loginButton)}" button
+  Then I should see a locked out error message
+  And I should remain on the login page`
+        },
+        {
+          name: 'Login with problem user account',
+          content: `Scenario: Login with problem user account
+  When I enter "problem_user" in the "${this.getElementName(usernameField)}" field
+  And I enter "secret_sauce" in the "${this.getElementName(passwordField)}" field
+  And I click the "${this.getElementName(loginButton)}" button
+  Then I should be logged in successfully
+  But I may experience visual glitches on the products page`
+        },
+        {
+          name: 'Login with performance user account',
+          content: `Scenario: Login with performance user account
+  When I enter "performance_glitch_user" in the "${this.getElementName(usernameField)}" field
+  And I enter "secret_sauce" in the "${this.getElementName(passwordField)}" field
+  And I click the "${this.getElementName(loginButton)}" button
+  Then I should be logged in successfully
+  But the page load may be slower than normal`
+        }
+      ];
+
+      // Always include the successful login scenario (most important)
+      scenarios.push(allScenarios[0].content);
+      console.log(`   ✅ Added: ${allScenarios[0].name}`);
+
+      // Randomly select the remaining scenarios
+      const remainingScenarios = allScenarios.slice(1);
+      const shuffled = remainingScenarios.sort(() => Math.random() - 0.5);
+      const selectedScenarios = shuffled.slice(0, numScenarios - 1);
+
+      selectedScenarios.forEach((scenario) => {
+        scenarios.push(scenario.content);
+        console.log(`   ✅ Added: ${scenario.name}`);
+      });
     }
 
-    // Add navigation scenario if we have links
-    const links = analysis.elements.filter((el: InteractiveElement) => el.type === 'a' || el.action === 'click');
-    if (links.length > 1) {
-      scenarios.push(`Scenario: Navigate through application sections
-  When I click navigation elements
-  Then I should be able to access different sections
-  And the application should maintain proper state`);
-    }
-
-    // If no specific scenarios were created, create a general interaction scenario
-    if (scenarios.length === 0 && analysis.elements.length > 0) {
-      const topElements = analysis.elements.slice(0, 3);
-      const generalSteps = topElements.map((el: InteractiveElement) => 
-        `When I ${el.action} the "${el.text}"`
-      );
-      
-      scenarios.push(`Scenario: General page interaction
-${generalSteps.map((step: string) => `  ${step}`).join('\n')}
-  Then the page should respond to user interactions
-  And the interface should remain functional`);
+    // If no specific scenarios were created, fall back to generic
+    if (scenarios.length === 0) {
+      console.log('⚠️ No specific scenarios created, using generic fallback');
+      scenarios.push(`Scenario: Basic page interaction
+  When I interact with the page elements
+  Then the page should respond appropriately`);
     }
 
     return `${tag}
 Feature: ${featureName}
-As a user, I want to interact with ${analysis.title} so that I can accomplish my goals effectively
+As a user, I want to authenticate with ${analysis.title} so that I can access the application
 
 Background:
-  Given I am on the "${analysis.title}" page
-  And the page interface is fully loaded
+  Given I am on the "${analysis.title}" login page
+  And the page has loaded completely
 
 ${scenarios.join('\n\n')}`;
   }
@@ -561,7 +629,7 @@ Scenario: Invalid queries show helpful errors
 # Note: This is a React-based testing tool for learning DOM query best practices`;
   }
 
-  private getElementName(element: InteractiveElement): string {
+  private getElementName(element: any): string {
     if (element.testId) {
       return element.testId.replace(/[-_]/g, ' ');
     }
@@ -576,79 +644,237 @@ Scenario: Invalid queries show helpful errors
   generateStepDefinitions(analysis: any, featureName: string): string {
     const steps = new Set<string>();
     
-    // Add standard navigation steps
-    steps.add(`Given('I am on the {string} page', async function (this: CustomWorld, pageName: string) {
+    // Standard navigation steps - no custom dependencies
+    steps.add(`Given('I am on the {string} login page', async function (pageName: string) {
   try {
-    await this.page.goto(this.baseURL);
+    await this.page.goto('${analysis.url || 'https://www.saucedemo.com/'}');
     await this.page.waitForLoadState('networkidle');
     const title = await this.page.title();
     expect(title).toContain(pageName);
   } catch (error) {
-    throw new Error(\`Failed to navigate to \${pageName} page: \${error}\`);
+    throw new Error(\`Failed to navigate to \${pageName} login page: \${error}\`);
   }
 });`);
 
-    // Generate steps for each unique action type
-    if (analysis.elements && analysis.elements.some((el: InteractiveElement) => el.action === 'click')) {
-      steps.add(`When('I click the {string}', async function (this: CustomWorld, elementName: string) {
+    steps.add(`Given('the page has loaded completely', async function () {
   try {
-    const selector = this.getElementSelector(elementName);
-    await this.page.click(selector);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(2000);
+    const title = await this.page.title();
+    expect(title.length).toBeGreaterThan(0);
   } catch (error) {
-    throw new Error(\`Failed to click \${elementName}: \${error}\`);
+    throw new Error(\`Page did not load completely: \${error}\`);
   }
 });`);
-    }
 
-    if (analysis.elements && analysis.elements.some((el: InteractiveElement) => el.action === 'enter text in')) {
-      steps.add(`When('I enter {string} in the {string}', async function (this: CustomWorld, text: string, fieldName: string) {
+    // Input steps - pure Playwright with inline selector logic
+    const inputs = analysis.elements?.filter((el: any) => el.action === 'enter text in') || [];
+    if (inputs.length > 0) {
+      steps.add(`When('I enter {string} in the {string} field', async function (text: string, fieldName: string) {
   try {
-    const selector = this.getElementSelector(fieldName);
+    let selector = '';
+    
+    // Direct selector mapping - standard Playwright only
+    switch (fieldName.toLowerCase()) {
+      case 'username':
+        selector = '[data-test="username"]';
+        break;
+      case 'password':
+        selector = '[data-test="password"]';
+        break;
+      case 'email':
+        selector = '[data-test="email"], input[type="email"]';
+        break;
+      default:
+        selector = \`[data-test="\${fieldName.toLowerCase()}"]\`;
+    }
+    
     await this.page.fill(selector, text);
   } catch (error) {
-    throw new Error(\`Failed to enter text in \${fieldName}: \${error}\`);
+    throw new Error(\`Failed to enter text in \${fieldName} field: \${error}\`);
   }
-});
+});`);
 
-When('I provide {string} data in the {string}', async function (this: CustomWorld, dataType: string, fieldName: string) {
+      steps.add(`When('I leave the {string} field empty', async function (fieldName: string) {
   try {
-    const testData = this.getTestData(dataType);
-    const selector = this.getElementSelector(fieldName);
-    await this.page.fill(selector, testData);
+    let selector = '';
+    
+    switch (fieldName.toLowerCase()) {
+      case 'username':
+        selector = '[data-test="username"]';
+        break;
+      case 'password':
+        selector = '[data-test="password"]';
+        break;
+      case 'email':
+        selector = '[data-test="email"], input[type="email"]';
+        break;
+      default:
+        selector = \`[data-test="\${fieldName.toLowerCase()}"]\`;
+    }
+    
+    await this.page.fill(selector, '');
   } catch (error) {
-    throw new Error(\`Failed to provide \${dataType} data in \${fieldName}: \${error}\`);
+    throw new Error(\`Failed to clear \${fieldName} field: \${error}\`);
   }
 });`);
     }
 
-    // Add verification steps
-    steps.add(`Then('the system should respond appropriately', async function (this: CustomWorld) {
+    // Button click steps - pure Playwright
+    const buttons = analysis.elements?.filter((el: any) => el.action === 'click') || [];
+    if (buttons.length > 0) {
+      steps.add(`When('I click the {string} button', async function (buttonName: string) {
   try {
-    // Wait for any async operations to complete
-    await this.page.waitForTimeout(1000);
+    let selector = '';
     
-    // Check that we're still on a valid page (not error page)
+    switch (buttonName.toLowerCase()) {
+      case 'login':
+      case 'login button':
+        selector = '[data-test="login-button"]';
+        break;
+      case 'submit':
+        selector = '[type="submit"], button:has-text("Submit")';
+        break;
+      case 'save':
+        selector = 'button:has-text("Save")';
+        break;
+      default:
+        selector = \`[data-test="\${buttonName.toLowerCase()}-button"]\`;
+    }
+    
+    await this.page.click(selector);
+    await this.page.waitForTimeout(2000);
+  } catch (error) {
+    throw new Error(\`Failed to click \${buttonName} button: \${error}\`);
+  }
+});`);
+    }
+
+    // Success verification steps - standard Playwright assertions
+    steps.add(`Then('I should be redirected to the products page', async function () {
+  try {
+    await this.page.waitForURL('**/inventory.html', { timeout: 10000 });
+    const currentUrl = this.page.url();
+    expect(currentUrl).toContain('inventory');
+  } catch (error) {
+    throw new Error(\`Failed to redirect to products page: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('I should see the inventory list', async function () {
+  try {
+    await this.page.waitForSelector('.inventory_list', { timeout: 10000 });
+    const inventoryList = this.page.locator('.inventory_list');
+    await expect(inventoryList).toBeVisible();
+  } catch (error) {
+    throw new Error(\`Failed to see inventory list: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('I should be logged in successfully', async function () {
+  try {
+    await Promise.race([
+      this.page.waitForURL('**/inventory.html', { timeout: 8000 }),
+      this.page.waitForSelector('.inventory_list', { timeout: 8000 })
+    ]);
+    
+    const currentUrl = this.page.url();
+    const hasInventory = await this.page.locator('.inventory_list').isVisible();
+    expect(currentUrl.includes('inventory') || hasInventory).toBeTruthy();
+  } catch (error) {
+    throw new Error(\`Login was not successful: \${error}\`);
+  }
+});`);
+
+    // Error verification steps - standard Playwright locators
+    steps.add(`Then('I should see an error message', async function () {
+  try {
+    await this.page.waitForSelector('[data-test="error"]', { timeout: 5000 });
+    const errorElement = this.page.locator('[data-test="error"]');
+    await expect(errorElement).toBeVisible();
+  } catch (error) {
+    throw new Error(\`Expected error message not found: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('I should see a locked out error message', async function () {
+  try {
+    await this.page.waitForSelector('[data-test="error"]', { timeout: 5000 });
+    const errorElement = this.page.locator('[data-test="error"]');
+    const errorText = await errorElement.textContent();
+    expect(errorText).toContain('locked out');
+  } catch (error) {
+    throw new Error(\`Locked out error message not found: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('I should see validation error messages', async function () {
+  try {
+    await this.page.waitForSelector('[data-test="error"]', { timeout: 5000 });
+    const errorElement = this.page.locator('[data-test="error"]');
+    const errorText = await errorElement.textContent();
+    expect(errorText).toMatch(/(required|Username|Password)/i);
+  } catch (error) {
+    throw new Error(\`Validation error messages not found: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('I should remain on the login page', async function () {
+  try {
+    const currentUrl = this.page.url();
+    expect(currentUrl).not.toContain('inventory');
+    
+    const loginButton = this.page.locator('[data-test="login-button"]');
+    await expect(loginButton).toBeVisible();
+  } catch (error) {
+    throw new Error(\`Not on login page as expected: \${error}\`);
+  }
+});`);
+
+    // Performance and visual steps
+    steps.add(`Then('I may experience visual glitches on the products page', async function () {
+  try {
+    await this.page.waitForSelector('.inventory_list', { timeout: 10000 });
+    // Visual glitches are UI-specific - just verify we reached the page
+  } catch (error) {
+    throw new Error(\`Failed to reach products page: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('the page load may be slower than normal', async function () {
+  try {
+    // Extended timeout for performance_glitch_user
+    await this.page.waitForSelector('.inventory_list', { timeout: 15000 });
+  } catch (error) {
+    throw new Error(\`Page did not load even with extended timeout: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('the login button should remain disabled or show error', async function () {
+  try {
+    // Check for error message (SauceDemo's validation approach)
+    const hasError = await this.page.locator('[data-test="error"]').isVisible();
+    expect(hasError).toBeTruthy();
+  } catch (error) {
+    throw new Error(\`Expected validation error not found: \${error}\`);
+  }
+});`);
+
+    steps.add(`Then('the system should respond appropriately', async function () {
+  try {
+    await this.page.waitForTimeout(1000);
     const currentUrl = this.page.url();
     expect(currentUrl).not.toContain('error');
   } catch (error) {
     throw new Error(\`System did not respond appropriately: \${error}\`);
   }
-});
-
-Then('the page should load successfully', async function (this: CustomWorld) {
-  try {
-    await this.page.waitForLoadState('networkidle');
-    const title = await this.page.title();
-    expect(title.length).toBeGreaterThan(0);
-  } catch (error) {
-    throw new Error(\`Page did not load successfully: \${error}\`);
-  }
 });`);
 
+    // Clean imports - only standard libraries
     return `import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import type { CustomWorld } from '../support/world';
+
+// Auto-generated step definitions using standard Playwright methods
+// No custom dependencies required - works with any Cucumber-Playwright setup
 
 ${Array.from(steps).join('\n\n')}`;
   }

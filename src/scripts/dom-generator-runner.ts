@@ -17,7 +17,7 @@ import fs from 'fs-extra';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
-// Alternative approach for __dirname in ESM without import.meta
+// ES module __dirname fix
 const __filename = fileURLToPath(new URL(import.meta.url));
 const __dirname = path.dirname(__filename);
 const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
@@ -42,42 +42,106 @@ interface AnalysisResult {
   url?: string;
 }
 
+// Smart feature name inference
+function inferFeatureName(analysis: AnalysisResult): string {
+  const { title, elements } = analysis;
+  
+  if (!elements || elements.length === 0) {
+    return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || "Page Interaction";
+  }
+  
+  // Detect login pages
+  const hasLoginButton = elements.some(el => 
+    el.text.toLowerCase().includes('login') || 
+    el.text.toLowerCase().includes('sign in')
+  );
+  const hasUsernamePassword = elements.some(el => 
+    el.type === 'input' && 
+    (el.text.toLowerCase().includes('username') || 
+     el.text.toLowerCase().includes('password') || 
+     el.text.toLowerCase().includes('email') ||
+     el.testId?.toLowerCase().includes('username') ||
+     el.testId?.toLowerCase().includes('password'))
+  );
+  
+  if (hasLoginButton && hasUsernamePassword) {
+    return "User Authentication";
+  }
+  
+  // Detect shopping/ecommerce
+  if (title.toLowerCase().includes('shop') || 
+      title.toLowerCase().includes('store') || 
+      title.toLowerCase().includes('cart')) {
+    return "Product Shopping";
+  }
+  
+  // Detect form-heavy pages
+  const inputCount = elements.filter(el => el.type === 'input' || el.type === 'textarea').length;
+  if (inputCount >= 3) {
+    return "Form Submission";
+  }
+  
+  // Detect dashboard/admin pages
+  if (title.toLowerCase().includes('dashboard') || 
+      title.toLowerCase().includes('admin') ||
+      title.toLowerCase().includes('panel')) {
+    return "Dashboard Management";
+  }
+  
+  // Fallback to cleaned page title
+  return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || "Page Interaction";
+}
+
 async function run() {
   const [, , argUrl, argFeature] = process.argv;
 
-  const { url, featureName, generateSteps, requiresLogin } = argUrl && argFeature
-    ? { 
-        url: argUrl, 
-        featureName: argFeature, 
-        generateSteps: true,
-        requiresLogin: false 
+  let url: string;
+  let featureName: string;
+  let generateSteps: boolean;
+  let requiresLogin: boolean;
+
+  if (argUrl) {
+    // URL provided via command line - bypass prompts and use intelligent naming
+    url = argUrl;
+    generateSteps = true;
+    requiresLogin = false;
+    
+    console.log(`🎯 Using URL: ${url}`);
+    console.log('🤖 Feature name will be auto-generated based on page analysis...');
+    
+    // We'll set featureName after DOM analysis
+    featureName = argFeature || ''; // Will be overridden
+  } else {
+    // No URL provided - use interactive prompts
+    const answers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'url',
+        message: 'Enter the full URL of the page to scan:',
+        validate: (input) => input.startsWith('http') ? true : 'Enter a valid URL',
+      },
+      {
+        type: 'input',
+        name: 'featureName',
+        message: 'Enter the Feature title (or press Enter for auto-generation):',
+        default: '',
+      },
+      {
+        type: 'confirm',
+        name: 'generateSteps',
+        message: 'Generate step definitions file?',
+        default: true,
+      },
+      {
+        type: 'confirm',
+        name: 'requiresLogin',
+        message: 'Does this page require login?',
+        default: false,
       }
-    : await inquirer.prompt([
-        {
-          type: 'input',
-          name: 'url',
-          message: 'Enter the full URL of the page to scan:',
-          validate: (input) => input.startsWith('http') ? true : 'Enter a valid URL',
-        },
-        {
-          type: 'input',
-          name: 'featureName',
-          message: 'Enter the Feature title:',
-          validate: (input) => input.trim() !== '' || 'Feature name cannot be empty',
-        },
-        {
-          type: 'confirm',
-          name: 'generateSteps',
-          message: 'Generate step definitions file?',
-          default: true,
-        },
-        {
-          type: 'confirm',
-          name: 'requiresLogin',
-          message: 'Does this page require login?',
-          default: false,
-        }
-      ]);
+    ]);
+    
+    ({ url, featureName, generateSteps, requiresLogin } = answers);
+  }
 
   console.log('🚀 Starting DOM analysis...');
   const generator = new DOMGenerator();
@@ -92,6 +156,25 @@ async function run() {
 
     console.log(`🔍 Analyzing page: ${url}`);
     const analysis: AnalysisResult = await generator.analyzePage(url);
+    
+    // 🚨 DEBUG: Let's see what we got
+    console.log('\n🔍 DEBUG Analysis Results:');
+    console.log('   Title:', analysis.title);
+    console.log('   Elements found:', analysis.elements?.length || 0);
+    console.log('   Elements exist:', !!analysis.elements);
+    
+    if (analysis.elements && analysis.elements.length > 0) {
+      console.log('   First 3 elements:');
+      analysis.elements.slice(0, 3).forEach((el, i) => {
+        console.log(`     ${i + 1}. ${el.type}: "${el.text}" (${el.action})`);
+      });
+    }
+    
+    // Auto-generate feature name if not provided
+    if (!featureName || featureName.trim() === '') {
+      featureName = inferFeatureName(analysis);
+      console.log(`🤖 Auto-generated feature name: "${featureName}"`);
+    }
     
     console.log('📝 Generating feature file...');
     const feature = generator.generateFeature(analysis, featureName);
@@ -110,40 +193,39 @@ async function run() {
     // Write feature file
     const featurePath = path.join(FEATURES_DIR, featureFileName);
     await fs.writeFile(featurePath, feature, 'utf8');
-    console.log(`✅ Feature file saved: src/features/${featureFileName}`);
+    console.log(`Feature file saved: src/features/${featureFileName}`);
 
-    // Generate and write step definitions if requested (skip if method doesn't exist)
+    // Generate and write step definitions if requested
     if (generateSteps) {
       console.log('🔧 Generating step definitions...');
       try {
-        // Check if the method exists before calling it using type assertion
         const generatorWithSteps = generator as any;
         if (typeof generatorWithSteps.generateStepDefinitions === 'function') {
           const stepDefinitions = generatorWithSteps.generateStepDefinitions(analysis, featureName);
           const stepsPath = path.join(STEPS_DIR, stepsFileName);
           await fs.writeFile(stepsPath, stepDefinitions, 'utf8');
-          console.log(`✅ Step definitions saved: src/steps/${stepsFileName}`);
+          console.log(`Step definitions saved: src/steps/${stepsFileName}`);
         } else {
-          console.log('⚠️  Step definitions generation not available in current DOMGenerator');
-          console.log('💡 You can add the generateStepDefinitions method to your DOMGenerator class');
+          console.log('Step definitions generation not available in current DOMGenerator');
         }
       } catch (error) {
-        console.log('⚠️  Could not generate step definitions:', error);
+        console.log('Could not generate step definitions:', error);
       }
     }
 
-    // Display summary - Now works with enhanced DOMGenerator
+    // Display summary
     console.log('\n📊 Analysis Summary:');
-    console.log(`   🎯 Page Title: ${analysis.title ?? 'Unknown'}`);
-    console.log(`   🔗 URL: ${analysis.url ?? url}`);
-    console.log(`   ⚡ Interactive Elements: ${analysis.elements?.length ?? 0}`);
+    console.log(`   🎯 Page Title: ${analysis.title}`);
+    console.log(`   🤖 Generated Feature: ${featureName}`);
+    console.log(`   🔗 URL: ${analysis.url || url}`);
+    console.log(`   ⚡ Interactive Elements: ${analysis.elements?.length || 0}`);
     
     // Show detailed elements from enhanced analysis
     if (analysis.elements && analysis.elements.length > 0) {
       console.log('\n🎮 Found Elements:');
       analysis.elements.slice(0, 5).forEach((el, i) => {
-        const name = el.testId ?? (el.text?.slice(0, 30) ?? `${el.type ?? 'unknown'} element`);
-        console.log(`   ${i + 1}. ${el.type?.toUpperCase() ?? 'UNKNOWN'}: ${name} (${el.action ?? 'unknown'})`);
+        const name = el.testId || el.text?.slice(0, 30) || `${el.type} element`;
+        console.log(`   ${i + 1}. ${el.type?.toUpperCase()}: ${name} (${el.action})`);
       });
       if (analysis.elements.length > 5) {
         console.log(`   ... and ${analysis.elements.length - 5} more elements`);
@@ -155,16 +237,6 @@ async function run() {
       console.log(`   🔲 Buttons: ${analysis.buttonCount}`);
       console.log(`   📝 Inputs: ${analysis.inputCount}`);
       console.log(`   🔗 Links: ${analysis.linkCount}`);
-      
-      if (analysis.actions && analysis.actions.length > 0) {
-        console.log('\n🎮 Generated Actions:');
-        analysis.actions.slice(0, 5).forEach((action: string, i: number) => {
-          console.log(`   ${i + 1}. ${action}`);
-        });
-        if (analysis.actions.length > 5) {
-          console.log(`   ... and ${analysis.actions.length - 5} more actions`);
-        }
-      }
     }
 
     // Show preview
@@ -199,7 +271,7 @@ async function run() {
   }
 }
 
-// Handle process cleanup
+// Handle process cleanup - ONLY ONCE!
 process.on('SIGINT', async () => {
   console.log('\n🛑 Interrupted. Cleaning up...');
   process.exit(0);
@@ -210,38 +282,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-run().catch(err => {
-  console.error('❌ Fatal error:', err);
-  process.exit(1);
-});
-
-// Handle process cleanup
-process.on('SIGINT', async () => {
-  console.log('\n🛑 Interrupted. Cleaning up...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  console.log('\n🛑 Terminated. Cleaning up...');
-  process.exit(0);
-});
-
-run().catch(err => {
-  console.error('❌ Fatal error:', err);
-  process.exit(1);
-});
-
-// Handle process cleanup
-process.on('SIGINT', async () => {
-  console.log('\n🛑 Interrupted. Cleaning up...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  console.log('\n🛑 Terminated. Cleaning up...');
-  process.exit(0);
-});
-
+// Run the script - ONLY ONCE!
 run().catch(err => {
   console.error('❌ Fatal error:', err);
   process.exit(1);
