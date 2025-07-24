@@ -20,7 +20,7 @@
     "cucumber:staging": "npm run clean:reports && cross-env ENV=staging npm run cucumber",
     "cucumber:generated": "npm run clean:reports && cross-env ENV=dev npm run cucumber -- --tags '@generated'",
     "generate:dom": "tsx src/scripts/dom-generator-runner.ts",
-    "generate:feature": "tsx src/scripts/generateFeature.ts",
+    "generate:featureOpenAI": "tsx src/scripts/featureGeneratorOpenAI.ts",
     "build": "npx tsc",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "test": "cross-env ENV=qa npx playwright test",
