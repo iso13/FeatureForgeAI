@@ -11,7 +11,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { DOMGenerator } from '../utils/dom-generator.js';
+import { DOMGenerator } from '../utils/dom-generator/index.js';
 import inquirer from 'inquirer';
 import fs from 'fs-extra';
 import * as path from 'path';
@@ -30,8 +30,8 @@ interface AnalysisResult {
   inputCount: number;
   linkCount: number;
   actions: string[];
-  // Optional properties for enhanced version
-  elements?: Array<{
+  // Make elements required to match the imported type
+  elements: Array<{
     selector: string;
     type: string;
     text: string;
@@ -39,14 +39,14 @@ interface AnalysisResult {
     testId?: string;
     role?: string;
   }>;
-  url?: string;
+  url: string; // Make url required to match the imported type
 }
 
 // Smart feature name inference
 function inferFeatureName(analysis: AnalysisResult): string {
   const { title, elements } = analysis;
   
-  if (!elements || elements.length === 0) {
+  if (elements.length === 0) {
     return title.replace(/[^a-zA-Z0-9\s]/g, '').trim() || "Page Interaction";
   }
   
@@ -160,10 +160,10 @@ async function run() {
     // 🚨 DEBUG: Let's see what we got
     console.log('\n🔍 DEBUG Analysis Results:');
     console.log('   Title:', analysis.title);
-    console.log('   Elements found:', analysis.elements?.length || 0);
+    console.log('   Elements found:', analysis.elements.length);
     console.log('   Elements exist:', !!analysis.elements);
     
-    if (analysis.elements && analysis.elements.length > 0) {
+    if (analysis.elements.length > 0) {
       console.log('   First 3 elements:');
       analysis.elements.slice(0, 3).forEach((el, i) => {
         console.log(`     ${i + 1}. ${el.type}: "${el.text}" (${el.action})`);
@@ -218,10 +218,10 @@ async function run() {
     console.log(`   🎯 Page Title: ${analysis.title}`);
     console.log(`   🤖 Generated Feature: ${featureName}`);
     console.log(`   🔗 URL: ${analysis.url || url}`);
-    console.log(`   ⚡ Interactive Elements: ${analysis.elements?.length || 0}`);
+    console.log(`   ⚡ Interactive Elements: ${analysis.elements.length}`);
     
     // Show detailed elements from enhanced analysis
-    if (analysis.elements && analysis.elements.length > 0) {
+    if (analysis.elements.length > 0) {
       console.log('\n🎮 Found Elements:');
       analysis.elements.slice(0, 5).forEach((el, i) => {
         const name = el.testId || el.text?.slice(0, 30) || `${el.type} element`;
