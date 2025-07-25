@@ -86,6 +86,12 @@ export interface CustomWorld extends World {
     extractClinicalData: (summary: string) => Promise<any>;
     tagICD10: (data: any) => Promise<any>;
   };
+
+  // 🔽 Added for Join Real scenario
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  emailAddress?: string;
 }
 
 class PlaywrightWorld extends World implements CustomWorld {
@@ -137,6 +143,12 @@ class PlaywrightWorld extends World implements CustomWorld {
     extractClinicalData: (summary: string) => Promise<any>;
     tagICD10: (data: any) => Promise<any>;
   };
+
+  // 🔽 Added for Join Real scenario
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  emailAddress?: string;
 
   constructor(options: IWorldOptions) {
     super(options);
