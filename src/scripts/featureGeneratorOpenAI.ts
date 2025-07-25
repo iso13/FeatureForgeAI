@@ -84,12 +84,15 @@ class EnhancedOpenAIGenerator {
   private async generateBothWithSingleCall(featureRequest: FeatureRequest): Promise<{feature: string, steps: string}> {
     const tag = this.generateFeatureTag(featureRequest.featureTitle);
     
+    // Create dynamic scenario examples based on requested count
+    const scenarioExamples = this.generateScenarioExamples(featureRequest.scenarioCount);
+    
     const prompt = `You are a BDD expert. Generate BOTH a Cucumber feature file AND matching step definitions.
 
 TASK: Create feature file + step definitions for "${featureRequest.featureTitle}"
 
 USER STORY: "${featureRequest.userStory}"
-CORE SCENARIOS: ${featureRequest.scenarioCount}
+REQUIRED SCENARIOS: EXACTLY ${featureRequest.scenarioCount} scenarios (no more, no less)
 
 CRITICAL RULES:
 ❌ NEVER use: "click", "button", "field", "page", "form", "input", "I should see"
@@ -97,6 +100,7 @@ CRITICAL RULES:
 ❌ NEVER create steps for the user story text itself
 ❌ NEVER use @error-handling or @edge-case tags
 ❌ NEVER create generic/boring scenarios - be creative and realistic
+❌ MUST generate EXACTLY ${featureRequest.scenarioCount} scenarios - count them before responding
 
 ✅ FEATURE FORMAT:
 \`\`\`gherkin
@@ -111,26 +115,7 @@ Feature: ${featureRequest.featureTitle}
     Given [realistic common setup that applies to ALL scenarios]
     And [additional meaningful setup]
 
-  Scenario: [Specific, realistic business scenario with context]
-    When [detailed business condition with real-world context]
-    Then [specific business outcome with measurable result]
-    And [additional meaningful outcome]
-
-  Scenario: [Creative scenario considering edge cases naturally]
-    When [interesting business condition that could really happen]
-    Then [realistic business response or outcome]
-    And [additional business impact]
-
-  Scenario: [Scenario that tests business rules or constraints]
-    When [boundary condition or business rule test]
-    Then [appropriate system behavior]
-    And [business-appropriate messaging or handling]
-
-  Scenario: [Complex realistic scenario with multiple conditions]
-    When [multi-step business condition]
-    And [additional realistic constraint]
-    Then [comprehensive business outcome]
-    And [follow-up business result]
+${scenarioExamples}
 \`\`\`
 
 CREATIVITY GUIDELINES:
@@ -165,16 +150,19 @@ Then('exact text from Then step', async function (this: CustomWorld) {
 \`\`\`
 
 REQUIREMENTS:
-1. Generate step definitions for EVERY step in the feature (exact text match)
-2. Use ONLY standard Playwright methods
-3. NO comments in step definitions
-4. Use data-testid selectors
-5. Focus on business language, not UI actions
-6. Background steps apply to ALL scenarios (no Given in scenarios)
-7. NO @error-handling or @edge-case tags - just descriptive Scenario names
-8. CREATE REALISTIC, CREATIVE scenarios with business context and specific details
-9. Avoid generic phrases like "should be" - use specific business outcomes
-10. Include realistic data, constraints, and business rules in scenarios
+1. Generate EXACTLY ${featureRequest.scenarioCount} scenarios - verify count before responding
+2. Generate step definitions for EVERY step in the feature (exact text match)
+3. Use ONLY standard Playwright methods
+4. NO comments in step definitions
+5. Use data-testid selectors
+6. Focus on business language, not UI actions
+7. Background steps apply to ALL scenarios (no Given in scenarios)
+8. NO @error-handling or @edge-case tags - just descriptive Scenario names
+9. CREATE REALISTIC, CREATIVE scenarios with business context and specific details
+10. Avoid generic phrases like "should be" - use specific business outcomes
+11. Include realistic data, constraints, and business rules in scenarios
+
+VERIFICATION: Before responding, count your scenarios and ensure you have EXACTLY ${featureRequest.scenarioCount}.
 
 OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_DEFINITIONS---"`;
 
@@ -197,7 +185,54 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
     const feature = this.cleanFeatureResponse(parts[0].trim(), tag);
     const steps = this.cleanStepDefinitionsResponse(parts[1].trim());
     
+    // Validate scenario count after generation
+    const actualCount = this.countScenarios(feature);
+    if (actualCount !== featureRequest.scenarioCount) {
+      console.warn(`⚠️  Generated ${actualCount} scenarios but requested ${featureRequest.scenarioCount}`);
+      // You could throw an error here or retry if needed
+    }
+    
     return { feature, steps };
+  }
+
+  /**
+   * Generate dynamic scenario examples based on requested count
+   */
+  private generateScenarioExamples(count: number): string {
+    const scenarioTemplates = [
+      `  Scenario: [Specific, realistic business scenario with context]
+    When [detailed business condition with real-world context]
+    Then [specific business outcome with measurable result]
+    And [additional meaningful outcome]`,
+      
+      `  Scenario: [Creative scenario considering edge cases naturally]
+    When [interesting business condition that could really happen]
+    Then [realistic business response or outcome]
+    And [additional business impact]`,
+      
+      `  Scenario: [Scenario that tests business rules or constraints]
+    When [boundary condition or business rule test]
+    Then [appropriate system behavior]
+    And [business-appropriate messaging or handling]`,
+      
+      `  Scenario: [Complex realistic scenario with multiple conditions]
+    When [multi-step business condition]
+    And [additional realistic constraint]
+    Then [comprehensive business outcome]
+    And [follow-up business result]`,
+      
+      `  Scenario: [User behavior variation scenario]
+    When [different user type or behavior pattern]
+    Then [appropriate system response]
+    And [relevant business outcome]`,
+      
+      `  Scenario: [Business process edge case]
+    When [realistic but uncommon business condition]
+    Then [appropriate system handling]
+    And [business-appropriate resolution]`
+    ];
+    
+    return scenarioTemplates.slice(0, count).join('\n\n');
   }
 
   /**
@@ -347,7 +382,6 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
  * Enhanced interactive prompt for OpenAI generation
  */
 async function runInteractivePrompt() {
-  console.log('🤖 FeatureForge AI - v19 Enhanced OpenAI Generator (Single Call)\n');
   
   const answers = await inquirer.prompt([
     {
@@ -400,21 +434,21 @@ async function runInteractivePrompt() {
     await generator.writeFilesInParallel(result, featurePath, stepsPath);
     
     console.log('\n📊 Generation Summary:');
-    console.log(`   🎯 Feature: ${result.metadata.featureName}`);
-    console.log(`   📝 Scenarios: ${result.metadata.scenarioCount}`);
-    console.log(`   ⚡ Generation time: ${result.metadata.generationTime}ms`);
-    console.log(`   🤖 v19 Single-call OpenAI generation completed!`);
-    console.log(`   📄 Generated both feature file and step definitions in one call`);
+    console.log(`Feature: ${result.metadata.featureName}`);
+    console.log(`Scenarios: ${result.metadata.scenarioCount}`);
+    console.log(`Generation time: ${result.metadata.generationTime}ms`);
+    console.log(`v19 Single-call OpenAI generation completed!`);
+    console.log(`Generated both feature file and step definitions in one call`);
     
     if (validation.isValid) {
-      console.log(`   ✅ Content quality: All declarative practices followed!`);
+      console.log(`Content quality: All declarative practices followed!`);
     }
     
   } catch (error) {
-    console.error('❌ v19 OpenAI generation failed:', error);
+    console.error('v19 OpenAI generation failed:', error);
     
     if (error instanceof Error && error.message.includes('API key')) {
-      console.log('💡 Make sure your OPENAI_API_KEY is set in your .env file');
+      console.log('Make sure your OPENAI_API_KEY is set in your .env file');
     }
   }
 }
