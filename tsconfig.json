@@ -17,18 +17,21 @@
     "declaration": false,
     "allowJs": false,
     "moduleDetection": "force",
-    
+
+    // Type filtering to avoid unwanted ambient modules
+    "types": [],
+
     // Helpful enhancements
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "verbatimModuleSyntax": true,
-    
+
     // Debugging / dev hints
     "preserveConstEnums": true,
     "removeComments": false,
-    
+
     // Type checking enhancements
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -44,13 +47,17 @@
       "@features/*": ["src/features/*"],
       "@steps/*": ["src/steps/*"],
       "@support/*": ["src/support/*"]
-    }
+    },
+
+    // Include custom type declarations
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.mts",
     "scripts/**/*.ts",
-    "*.ts"
+    "*.ts",
+    "src/types"
   ],
   "exclude": [
     "node_modules",

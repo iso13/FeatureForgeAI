@@ -10,20 +10,25 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { trace, SpanStatusCode, context, ROOT_CONTEXT } from '@opentelemetry/api';
-import type { Span } from '@opentelemetry/api';
+import {
+  trace,
+  SpanStatusCode,
+  context,
+  ROOT_CONTEXT,
+} from "@opentelemetry/api";
+import type { Span } from "@opentelemetry/api";
 
-const tracer = trace.getTracer('cucumber-playwright');
+const tracer = trace.getTracer("cucumber-playwright");
 
 export async function withSpan<T>(
   name: string,
   fn: (span: Span) => Promise<T>,
   attributes: Record<string, any> = {},
-  parentSpan?: Span
+  parentSpan?: Span,
 ): Promise<T> {
   const ctx = parentSpan
     ? trace.setSpan(context.active(), parentSpan)
-    : context.active() ?? ROOT_CONTEXT;
+    : (context.active() ?? ROOT_CONTEXT);
 
   return await context.with(ctx, async () => {
     const span = tracer.startSpan(name, {

@@ -4,40 +4,48 @@
  * Copyright (c) 2024–2025 David Tran
  */
 
-import type { AnalysisResult, InteractiveElement } from './types.js';
+import type { AnalysisResult, InteractiveElement } from "./types.js";
 
 export class StepGenerator {
-  generateStepDefinitions(analysis: AnalysisResult, featureName: string): string {
+  generateStepDefinitions(
+    analysis: AnalysisResult,
+    featureName: string,
+  ): string {
     const steps = new Set<string>();
-    
-    console.log('🔧 Generating step definitions...');
+
+    console.log("🔧 Generating step definitions...");
     console.log(`   URL: ${analysis.url}`);
-    console.log(`   Elements to create steps for: ${analysis.elements?.length || 0}`);
-    
+    console.log(
+      `   Elements to create steps for: ${analysis.elements?.length || 0}`,
+    );
+
     // Add navigation steps
     this.addNavigationSteps(steps, analysis);
-    
+
     // Add input steps based on found elements
     this.addInputSteps(steps, analysis);
-    
+
     // Add button steps based on found elements
     this.addButtonSteps(steps, analysis);
-    
+
     // Add verification steps
     this.addVerificationSteps(steps);
-    
+
     // Add performance and edge case steps
     this.addSpecialCaseSteps(steps);
 
     console.log(`   Generated ${steps.size} unique step definitions`);
-    
+
     return this.buildStepDefinitionsFile(steps);
   }
 
   /**
    * Add navigation and page loading steps
    */
-  private addNavigationSteps(steps: Set<string>, analysis: AnalysisResult): void {
+  private addNavigationSteps(
+    steps: Set<string>,
+    analysis: AnalysisResult,
+  ): void {
     steps.add(`Given('I am on the {string} login page', async function (pageName: string) {
   try {
     await this.page.goto('${analysis.url}');
@@ -64,11 +72,12 @@ export class StepGenerator {
    * Add input field interaction steps
    */
   private addInputSteps(steps: Set<string>, analysis: AnalysisResult): void {
-    const inputs = analysis.elements?.filter(el => el.action === 'enter text in') || [];
-    
+    const inputs =
+      analysis.elements?.filter((el) => el.action === "enter text in") || [];
+
     if (inputs.length > 0) {
       console.log(`   Adding input steps for ${inputs.length} input elements`);
-      
+
       // Standard text entry step
       steps.add(`When('I enter {string} in the {string} field', async function (text: string, fieldName: string) {
   try {
@@ -126,11 +135,14 @@ export class StepGenerator {
    * Add button click interaction steps
    */
   private addButtonSteps(steps: Set<string>, analysis: AnalysisResult): void {
-    const buttons = analysis.elements?.filter(el => el.action === 'click') || [];
-    
+    const buttons =
+      analysis.elements?.filter((el) => el.action === "click") || [];
+
     if (buttons.length > 0) {
-      console.log(`   Adding button steps for ${buttons.length} clickable elements`);
-      
+      console.log(
+        `   Adding button steps for ${buttons.length} clickable elements`,
+      );
+
       steps.add(`When('I click the {string} button', async function (buttonName: string) {
   try {
     let selector = '';
@@ -163,8 +175,8 @@ export class StepGenerator {
    * Add verification and assertion steps
    */
   private addVerificationSteps(steps: Set<string>): void {
-    console.log('   Adding verification steps...');
-    
+    console.log("   Adding verification steps...");
+
     // Success verification steps
     steps.add(`Then('I should be redirected to the products page', async function () {
   try {
@@ -251,8 +263,8 @@ export class StepGenerator {
    * Add special case and performance steps
    */
   private addSpecialCaseSteps(steps: Set<string>): void {
-    console.log('   Adding special case steps...');
-    
+    console.log("   Adding special case steps...");
+
     // Performance and visual glitch steps
     steps.add(`Then('I may experience visual glitches on the products page', async function () {
   try {
@@ -307,43 +319,46 @@ import { expect } from '@playwright/test';
 
 `;
 
-    const stepsContent = Array.from(steps).join('\n\n');
-    
+    const stepsContent = Array.from(steps).join("\n\n");
+
     return header + stepsContent;
   }
 
   /**
    * Generate steps for specific element types (extensible method)
    */
-  generateStepsForElementType(elements: InteractiveElement[], elementType: 'input' | 'button' | 'select' | 'link'): string[] {
+  generateStepsForElementType(
+    elements: InteractiveElement[],
+    elementType: "input" | "button" | "select" | "link",
+  ): string[] {
     const steps: string[] = [];
-    
-    const filteredElements = elements.filter(el => {
+
+    const filteredElements = elements.filter((el) => {
       switch (elementType) {
-        case 'input':
-          return el.type === 'input' || el.type === 'textarea';
-        case 'button':
-          return el.type === 'button' || el.action === 'click';
-        case 'select':
-          return el.type === 'select';
-        case 'link':
-          return el.type === 'a';
+        case "input":
+          return el.type === "input" || el.type === "textarea";
+        case "button":
+          return el.type === "button" || el.action === "click";
+        case "select":
+          return el.type === "select";
+        case "link":
+          return el.type === "a";
         default:
           return false;
       }
     });
 
     switch (elementType) {
-      case 'input':
-        filteredElements.forEach(el => {
+      case "input":
+        filteredElements.forEach((el) => {
           steps.push(`When('I enter {string} in the ${this.getElementName(el)} field', async function (text: string) {
   await this.page.fill('${el.selector}', text);
 });`);
         });
         break;
 
-      case 'button':
-        filteredElements.forEach(el => {
+      case "button":
+        filteredElements.forEach((el) => {
           steps.push(`When('I click the ${this.getElementName(el)} button', async function () {
   await this.page.click('${el.selector}');
   await this.page.waitForTimeout(1000);
@@ -351,16 +366,16 @@ import { expect } from '@playwright/test';
         });
         break;
 
-      case 'select':
-        filteredElements.forEach(el => {
+      case "select":
+        filteredElements.forEach((el) => {
           steps.push(`When('I select {string} from the ${this.getElementName(el)} dropdown', async function (option: string) {
   await this.page.selectOption('${el.selector}', option);
 });`);
         });
         break;
 
-      case 'link':
-        filteredElements.forEach(el => {
+      case "link":
+        filteredElements.forEach((el) => {
           steps.push(`When('I click the ${this.getElementName(el)} link', async function () {
   await this.page.click('${el.selector}');
   await this.page.waitForLoadState('networkidle');
@@ -377,13 +392,16 @@ import { expect } from '@playwright/test';
    */
   private getElementName(element: InteractiveElement): string {
     if (element.testId) {
-      return element.testId.replace(/[-_]/g, ' ').toLowerCase();
+      return element.testId.replace(/[-_]/g, " ").toLowerCase();
     }
-    
+
     if (element.text && element.text.length > 0) {
-      return element.text.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, '').trim();
+      return element.text
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .trim();
     }
-    
+
     return element.type;
   }
 
@@ -391,45 +409,49 @@ import { expect } from '@playwright/test';
    * Generate step definitions with custom configuration
    */
   generateStepDefinitionsWithConfig(
-    analysis: AnalysisResult, 
+    analysis: AnalysisResult,
     featureName: string,
     config: {
       includePerformanceSteps?: boolean;
       includeAccessibilitySteps?: boolean;
       includeErrorHandling?: boolean;
       customTimeout?: number;
-    } = {}
+    } = {},
   ): string {
     const steps = new Set<string>();
-    
+
     // Add standard steps
     this.addNavigationSteps(steps, analysis);
     this.addInputSteps(steps, analysis);
     this.addButtonSteps(steps, analysis);
     this.addVerificationSteps(steps);
-    
+
     // Add optional step types based on config
     if (config.includePerformanceSteps) {
       this.addPerformanceSteps(steps, config.customTimeout);
     }
-    
+
     if (config.includeAccessibilitySteps) {
       this.addAccessibilitySteps(steps);
     }
-    
-    if (config.includeErrorHandling !== false) { // Default to true
+
+    if (config.includeErrorHandling !== false) {
+      // Default to true
       this.addSpecialCaseSteps(steps);
     }
-    
+
     return this.buildStepDefinitionsFile(steps);
   }
 
   /**
    * Add performance-focused step definitions
    */
-  private addPerformanceSteps(steps: Set<string>, customTimeout?: number): void {
+  private addPerformanceSteps(
+    steps: Set<string>,
+    customTimeout?: number,
+  ): void {
     const timeout = customTimeout || 5000;
-    
+
     steps.add(`Then('the page should load within {int} seconds', async function (maxSeconds: number) {
   const startTime = Date.now();
   await this.page.waitForLoadState('networkidle', { timeout: maxSeconds * 1000 });

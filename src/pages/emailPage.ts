@@ -10,7 +10,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import type { Page } from 'playwright';
+import type { Page } from "playwright";
 
 export class EmailPage {
   constructor(private page: Page) {}
@@ -22,6 +22,6 @@ export class EmailPage {
 
   getResetLink(emailContent: string): string {
     const match = emailContent.match(/https:\/\/[^\s]+/);
-    return match?.[0] || '';
+    return match?.[0] || "";
   }
 }

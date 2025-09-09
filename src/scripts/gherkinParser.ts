@@ -20,12 +20,12 @@
 export function parseGherkin(content: string): string[] {
   const errors: string[] = [];
 
-  if (!content.includes('Feature:')) {
+  if (!content.includes("Feature:")) {
     errors.push('Missing "Feature:" declaration');
   }
 
   // Example: check if there’s at least one Scenario
-  if (!content.includes('Scenario:')) {
+  if (!content.includes("Scenario:")) {
     errors.push('Missing at least one "Scenario:" declaration');
   }
 

@@ -10,8 +10,8 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { execSync } from 'child_process';
-import { generateAgenticFeature } from '../services/agenticGenerator';
+import { execSync } from "child_process";
+import { generateAgenticFeature } from "../services/agenticGenerator";
 
 /**
  * Accepts a user goal and executes the agentic test loop:
@@ -28,29 +28,31 @@ async function agenticTest(goal: string) {
   await generateAgenticFeature(goal);
 
   // Step 2: Run cucumber test tagged @agent
-  let output = '';
+  let output = "";
   try {
     console.log(`🧪 Running Cucumber test for @agent`);
-    output = execSync(`npx cucumber-js --tags @agent`, { encoding: 'utf8' });
+    output = execSync(`npx cucumber-js --tags @agent`, { encoding: "utf8" });
     console.log(output);
   } catch (err: any) {
     output = err.stdout?.toString() || err.message;
   }
 
   // Step 3: Analyze results
-  if (output.includes('0 scenarios (0 passed)')) {
-    console.error('No scenarios found. Regenerating...');
-  } else if (output.includes('failed')) {
-    console.warn('Test failed. Consider refining steps or regenerating.');
+  if (output.includes("0 scenarios (0 passed)")) {
+    console.error("No scenarios found. Regenerating...");
+  } else if (output.includes("failed")) {
+    console.warn("Test failed. Consider refining steps or regenerating.");
   } else {
-    console.log('Agentic test passed!');
+    console.log("Agentic test passed!");
   }
 }
 
 // Entry point
 const prompt = process.argv[2];
 if (!prompt) {
-  console.error('Please pass a test goal, e.g.: `node agent.ts "Check password reset flow"`');
+  console.error(
+    'Please pass a test goal, e.g.: `node agent.ts "Check password reset flow"`',
+  );
   process.exit(1);
 }
 

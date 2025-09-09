@@ -10,24 +10,24 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { setWorldConstructor, World } from '@cucumber/cucumber';
-import type { IWorldOptions } from '@cucumber/cucumber';
+import { setWorldConstructor, World } from "@cucumber/cucumber";
+import type { IWorldOptions } from "@cucumber/cucumber";
 import type {
   Browser,
   BrowserContext,
   Page,
   LaunchOptions,
   BrowserContextOptions,
-} from 'playwright';
-import type { Span } from '@opentelemetry/api';
+} from "playwright";
+import type { Span } from "@opentelemetry/api";
 
-import { CapitalCallAgent } from '../ai/agentTester';
-import { RAGEngine } from '../ai/ragHelper';
-import { BasePage } from '../pages/BasePage';
-import { DefaultPage } from '../pages/defaultPage';
+import { CapitalCallAgent } from "../ai/agentTester";
+import { RAGEngine } from "../ai/ragHelper";
+import { BasePage } from "../pages/BasePage";
+import { DefaultPage } from "../pages/defaultPage";
 
-import { MockAccessAPI } from '../mocks/mock-access-api';
-import type { AccessAPI } from '../types/access-api';
+import { MockAccessAPI } from "../mocks/mock-access-api";
+import type { AccessAPI } from "../types/access-api";
 
 export interface MLModel {
   predict: (input: any) => number;
@@ -71,7 +71,10 @@ export interface CustomWorld extends World {
   notificationLogs?: any[];
   serviceDown?: boolean;
 
-  inputSample?: { demographic: string; attributes: { income: number; age: number } };
+  inputSample?: {
+    demographic: string;
+    attributes: { income: number; age: number };
+  };
   modelOutput?: number;
   baselineOutput?: number;
   model?: MLModel;
@@ -95,15 +98,15 @@ class PlaywrightWorld extends World implements CustomWorld {
   basePage!: BasePage;
   testSpan?: Span;
   stepSpan?: Span;
-  scenarioName: string = '';
-  featureName: string = '';
+  scenarioName: string = "";
+  featureName: string = "";
   pickle: any;
   a11yResults?: any;
   lastSummaryOutput?: string;
 
-  email: string = '';
-  resetLink: string = '';
-  newPassword: string = '';
+  email: string = "";
+  resetLink: string = "";
+  newPassword: string = "";
   userId?: string;
   accessApi?: AccessAPI;
 
@@ -122,7 +125,10 @@ class PlaywrightWorld extends World implements CustomWorld {
   notificationLogs?: any[];
   serviceDown?: boolean;
 
-  inputSample?: { demographic: string; attributes: { income: number; age: number } };
+  inputSample?: {
+    demographic: string;
+    attributes: { income: number; age: number };
+  };
   modelOutput?: number;
   baselineOutput: number = 0.5;
   model?: MLModel;
@@ -143,9 +149,11 @@ class PlaywrightWorld extends World implements CustomWorld {
     this.accessApi = new MockAccessAPI();
   }
 
-  async launchBrowser(options: LaunchOptions & BrowserContextOptions = {}): Promise<void> {
-    const { chromium } = await import('playwright');
-    const headlessEnv = process.env.HEADLESS?.toLowerCase() === 'true';
+  async launchBrowser(
+    options: LaunchOptions & BrowserContextOptions = {},
+  ): Promise<void> {
+    const { chromium } = await import("playwright");
+    const headlessEnv = process.env.HEADLESS?.toLowerCase() === "true";
     const headless = options.headless ?? headlessEnv ?? false;
     const slowMo = options.slowMo ?? 100;
 
@@ -153,7 +161,7 @@ class PlaywrightWorld extends World implements CustomWorld {
 
     this.context = await this.browser.newContext({
       ...options,
-      permissions: ['microphone'],
+      permissions: ["microphone"],
       viewport: { width: 1280, height: 800 },
     });
 

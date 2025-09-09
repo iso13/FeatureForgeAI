@@ -10,13 +10,13 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import * as tf from '@tensorflow/tfjs-node'; // Use tfjs-node for Node.js file system support
+import * as tf from "@tensorflow/tfjs-node"; // Use tfjs-node for Node.js file system support
 
 // Simple TensorFlow Model
 export async function createSimpleModel() {
   const model = tf.sequential();
   model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
-  model.compile({ loss: 'meanSquaredError', optimizer: 'sgd' });
+  model.compile({ loss: "meanSquaredError", optimizer: "sgd" });
 
   // Training data: y = 2x - 1
   const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
@@ -26,7 +26,7 @@ export async function createSimpleModel() {
   await model.fit(xs, ys, { epochs: 1000 });
 
   // Save the model
-  await model.save('file://./src/support/model/pretrained-model');
+  await model.save("file://./src/support/model/pretrained-model");
 
   return model;
 }
@@ -34,7 +34,7 @@ export async function createSimpleModel() {
 // Load a pre-trained model
 export async function loadTrainedModel() {
   return await tf.loadLayersModel(
-    'file://./src/support/model/pretrained-model/model.json',
+    "file://./src/support/model/pretrained-model/model.json",
   );
 }
 

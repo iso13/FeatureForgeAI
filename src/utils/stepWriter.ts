@@ -10,11 +10,13 @@
 // SPDX-License-Identifier: BSL-1.1
 
 // src/utils/stepWriter.ts
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function generateStepDefinitions(gherkinContent: string): Promise<string> {
+export async function generateStepDefinitions(
+  gherkinContent: string,
+): Promise<string> {
   const parameterizationGuidelines = `
 CRITICAL PARAMETERIZATION REQUIREMENTS:
 1. NEVER use hard-coded strings in step definitions
@@ -117,17 +119,17 @@ Generate only the step definition functions - no explanatory text.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.1, // Very low temperature for consistent code generation
       max_tokens: 4000, // Increased for comprehensive step definitions
     });
 
     if (response.choices && response.choices.length > 0) {
-      let stepDefinitions = (response.choices[0].message?.content || '')
-        .replace(/```typescript|```/g, '')
-        .replace(/Below are the.*?definitions.*?\n/gs, '')
-        .replace(/###.*?\n/gs, '')
+      let stepDefinitions = (response.choices[0].message?.content || "")
+        .replace(/```typescript|```/g, "")
+        .replace(/Below are the.*?definitions.*?\n/gs, "")
+        .replace(/###.*?\n/gs, "")
         .trim();
 
       // Post-process to ensure quality and remove any remaining commentary
@@ -136,12 +138,12 @@ Generate only the step definition functions - no explanatory text.`;
 
       return stepDefinitions;
     } else {
-      console.error('No content received from OpenAI API.');
-      throw new Error('No content received from OpenAI API.');
+      console.error("No content received from OpenAI API.");
+      throw new Error("No content received from OpenAI API.");
     }
   } catch (error) {
-    console.error('Error generating step definitions:', error);
-    throw new Error('Failed to generate step definitions.');
+    console.error("Error generating step definitions:", error);
+    throw new Error("Failed to generate step definitions.");
   }
 }
 
@@ -152,28 +154,42 @@ Generate only the step definition functions - no explanatory text.`;
  */
 function improveStepDefinitions(content: string): string {
   // Ensure proper imports are at the top
-  if (!content.includes('import { expect } from \'@playwright/test\'')) {
-    content = 'import { Given, When, Then } from \'@cucumber/cucumber\';\nimport { expect } from \'@playwright/test\';\n\n' + content;
+  if (!content.includes("import { expect } from '@playwright/test'")) {
+    content =
+      "import { Given, When, Then } from '@cucumber/cucumber';\nimport { expect } from '@playwright/test';\n\n" +
+      content;
   }
 
   // Fix common issues and remove commentary
   content = content
     // Remove any explanatory text at the end
-    .replace(/This TypeScript code follows.*?scenarios\./gs, '')
-    .replace(/\n\s*This TypeScript.*$/gs, '')
-    .replace(/\n\s*The above.*$/gs, '')
-    .replace(/\n\s*This code.*$/gs, '')
-    
+    .replace(/This TypeScript code follows.*?scenarios\./gs, "")
+    .replace(/\n\s*This TypeScript.*$/gs, "")
+    .replace(/\n\s*The above.*$/gs, "")
+    .replace(/\n\s*This code.*$/gs, "")
+
     // Ensure proper timeout format
-    .replace(/waitForSelector\('([^']+)'(?!, \{ timeout)/g, 'waitForSelector(\'$1\', { timeout: 15000 }')
+    .replace(
+      /waitForSelector\('([^']+)'(?!, \{ timeout)/g,
+      "waitForSelector('$1', { timeout: 15000 }",
+    )
     // Add networkidle after navigation
-    .replace(/(await this\.page\.goto\([^)]+\);)/g, '$1\n    await this.page.waitForLoadState("networkidle");')
+    .replace(
+      /(await this\.page\.goto\([^)]+\);)/g,
+      '$1\n    await this.page.waitForLoadState("networkidle");',
+    )
     // Fix incomplete assertions
-    .replace(/\/\/ Assuming.*?$/gm, '// TODO: Implement specific verification logic')
+    .replace(
+      /\/\/ Assuming.*?$/gm,
+      "// TODO: Implement specific verification logic",
+    )
     // Ensure template literals for dynamic selectors
-    .replace(/('[^']*\$\{[^}]+\}[^']*')/g, '`$1`'.replace(/'/g, ''))
+    .replace(/('[^']*\$\{[^}]+\}[^']*')/g, "`$1`".replace(/'/g, ""))
     // Fix error messages to use template literals
-    .replace(/throw new Error\('([^']*)\$\{([^}]+)\}([^']*)'\)/g, 'throw new Error(`$1${$2}$3`)');
+    .replace(
+      /throw new Error\('([^']*)\$\{([^}]+)\}([^']*)'\)/g,
+      "throw new Error(`$1${$2}$3`)",
+    );
 
   return finalCleanup(content);
 }
@@ -189,25 +205,39 @@ function ensureParameterization(content: string): string {
     /'[^']*administrator[^']*'/gi,
     /'[^']*test@example\.com[^']*'/gi,
     /'[^']*User created successfully[^']*'/gi,
-    /'[^']*Add User[^']*'/gi
+    /'[^']*Add User[^']*'/gi,
   ];
 
-  hardCodedPatterns.forEach(pattern => {
+  hardCodedPatterns.forEach((pattern) => {
     if (pattern.test(content)) {
-      console.warn('⚠️ Hard-coded values detected in step definitions - should be parameterized');
+      console.warn(
+        "⚠️ Hard-coded values detected in step definitions - should be parameterized",
+      );
     }
   });
 
   // Replace any remaining hard-coded step patterns with parameterized versions
   content = content
-    .replace(/Given\('the user has administrator privileges'/gi, 'Given(\'the user has {string} privileges\'')
-    .replace(/When\('the user provides "([^"]+)" for "([^"]+)"'/gi, 'When(\'the user provides {string} for {string}\'')
-    .replace(/Then\('the system should display "([^"]+)"'/gi, 'Then(\'the system should display {string}\'')
-    .replace(/function\(\)\s*{/gi, 'function(param: string) {')
+    .replace(
+      /Given\('the user has administrator privileges'/gi,
+      "Given('the user has {string} privileges'",
+    )
+    .replace(
+      /When\('the user provides "([^"]+)" for "([^"]+)"'/gi,
+      "When('the user provides {string} for {string}'",
+    )
+    .replace(
+      /Then\('the system should display "([^"]+)"'/gi,
+      "Then('the system should display {string}'",
+    )
+    .replace(/function\(\)\s*{/gi, "function(param: string) {")
     .replace(/function\(([^)]*)\)\s*{/gi, (match, params) => {
-      if (!params.includes(':')) {
+      if (!params.includes(":")) {
         const paramCount = (params.match(/,/g) || []).length + 1;
-        const typedParams = Array.from({length: paramCount}, (_, i) => `param${i + 1}: string`).join(', ');
+        const typedParams = Array.from(
+          { length: paramCount },
+          (_, i) => `param${i + 1}: string`,
+        ).join(", ");
         return `function(${typedParams}) {`;
       }
       return match;
@@ -222,24 +252,35 @@ function ensureParameterization(content: string): string {
  * @returns Cleaned and formatted content
  */
 function finalCleanup(content: string): string {
-  return content
-    // Remove duplicate waitForLoadState calls
-    .replace(/await this\.page\.waitForLoadState\([^)]+\);\s*await this\.page\.waitForLoadState\([^)]+\);/g,
-      'await this.page.waitForLoadState("networkidle");')
-    // Fix incomplete login comments
-    .replace(/\/\/ handle login flow/g,
-      'await this.page.click(loginButton);\n      // TODO: Add username/password input logic')
-    // Fix error handling - use throw new Error instead of console.error
-    .replace(/console\.error\(`([^`]+): \$\{error\}`\);/g,
-      'throw new Error(`$1: ${error}`);')
-    // Ensure consistent indentation
-    .replace(/^  /gm, '    ') // Convert 2-space to 4-space indentation
-    // Remove extra blank lines
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    // Remove any remaining trailing explanatory text
-    .replace(/\n\s*This (?:TypeScript )?code.*$/gs, '')
-    .replace(/\n\s*The (?:above )?.*?(?:best practices|Playwright|Cucumber).*$/gs, '')
-    .trim();
+  return (
+    content
+      // Remove duplicate waitForLoadState calls
+      .replace(
+        /await this\.page\.waitForLoadState\([^)]+\);\s*await this\.page\.waitForLoadState\([^)]+\);/g,
+        'await this.page.waitForLoadState("networkidle");',
+      )
+      // Fix incomplete login comments
+      .replace(
+        /\/\/ handle login flow/g,
+        "await this.page.click(loginButton);\n      // TODO: Add username/password input logic",
+      )
+      // Fix error handling - use throw new Error instead of console.error
+      .replace(
+        /console\.error\(`([^`]+): \$\{error\}`\);/g,
+        "throw new Error(`$1: ${error}`);",
+      )
+      // Ensure consistent indentation
+      .replace(/^  /gm, "    ") // Convert 2-space to 4-space indentation
+      // Remove extra blank lines
+      .replace(/\n\s*\n\s*\n/g, "\n\n")
+      // Remove any remaining trailing explanatory text
+      .replace(/\n\s*This (?:TypeScript )?code.*$/gs, "")
+      .replace(
+        /\n\s*The (?:above )?.*?(?:best practices|Playwright|Cucumber).*$/gs,
+        "",
+      )
+      .trim()
+  );
 }
 
 /**
@@ -249,42 +290,50 @@ function finalCleanup(content: string): string {
  */
 export function validateStepDefinitions(content: string): string[] {
   const warnings: string[] = [];
-  
+
   // Check for hard-coded step patterns
   if (/'[^']*(?:test@|admin|User created|Add User)[^']*'/i.test(content)) {
-    warnings.push("❌ Hard-coded values found in step patterns - should use {string} parameters");
+    warnings.push(
+      "❌ Hard-coded values found in step patterns - should use {string} parameters",
+    );
   }
-  
+
   // Check for missing parameterization
   const stepPatterns = content.match(/(Given|When|Then)\('([^']+)'/g) || [];
-  stepPatterns.forEach(pattern => {
-    if (!pattern.includes('{string}') && !pattern.includes('{int}') && pattern.includes('"')) {
+  stepPatterns.forEach((pattern) => {
+    if (
+      !pattern.includes("{string}") &&
+      !pattern.includes("{int}") &&
+      pattern.includes('"')
+    ) {
       warnings.push(`⚠️ Step pattern may need parameterization: ${pattern}`);
     }
   });
-  
+
   // Check for proper function signatures
   const functionMatches = content.match(/function\([^)]*\)/g) || [];
-  functionMatches.forEach(func => {
-    if (func === 'function()' && content.includes('{string}')) {
-      warnings.push("📝 Function signature missing parameters despite {string} in step pattern");
+  functionMatches.forEach((func) => {
+    if (func === "function()" && content.includes("{string}")) {
+      warnings.push(
+        "📝 Function signature missing parameters despite {string} in step pattern",
+      );
     }
   });
-  
+
   // Check for proper imports
-  if (!content.includes('import { Given, When, Then }')) {
+  if (!content.includes("import { Given, When, Then }")) {
     warnings.push("📦 Missing Cucumber imports");
   }
-  
-  if (!content.includes('import { expect }')) {
+
+  if (!content.includes("import { expect }")) {
     warnings.push("📦 Missing Playwright expect import");
   }
-  
+
   // Check for explanatory text
   if (/This (?:TypeScript )?code|The above|best practices/i.test(content)) {
     warnings.push("🧹 Explanatory text detected - should be removed");
   }
-  
+
   return warnings;
 }
 
@@ -299,11 +348,12 @@ export function extractStepPatterns(gherkinContent: string): string[] {
   let match: RegExpExecArray | null;
 
   while ((match = stepRegex.exec(gherkinContent)) !== null) {
-    const stepText = match[2].trim()
-      .replace(/<[^>]+>/g, '{string}') // Convert angle brackets to Cucumber expressions
-      .replace(/"\$\{[^}]+\}"/g, '{string}') // Convert template literals to parameters
-      .replace(/"[^"]+"/g, '{string}'); // Convert quoted strings to parameters
-    
+    const stepText = match[2]
+      .trim()
+      .replace(/<[^>]+>/g, "{string}") // Convert angle brackets to Cucumber expressions
+      .replace(/"\$\{[^}]+\}"/g, "{string}") // Convert template literals to parameters
+      .replace(/"[^"]+"/g, "{string}"); // Convert quoted strings to parameters
+
     if (!steps.includes(stepText)) {
       steps.push(stepText);
     }

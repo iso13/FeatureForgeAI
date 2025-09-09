@@ -1,4 +1,4 @@
-![BDD](docs/images/BDD.png)
+![BDD](docs/images/BDD.jpg)
 # FeatueForge AI
 
 # Cucumber Automation Framework 🚀
@@ -8,7 +8,7 @@ This repository hosts a robust and scalable **Cucumber Automation** framework de
 ---
 
 ## Key Features 🌟
-- **BDD-Driven Design**: Write test cases in natural language using the Gherkin syntax, promoting collaboration between technical and non-technical stakeholders.
+- **BDD-Driven Design**: Write Features, Scenarios and Steps in natural language using the Gherkin syntax, promoting collaboration between technical and non-technical stakeholders.
 - **Playwright Integration**: Leverage Playwright’s fast, reliable, and capable browser automation for comprehensive test coverage across multiple platforms and devices.
 - **TypeScript Support**: Ensure type safety and robust coding practices with a fully TypeScript-based implementation.
 - **Flexible Tagging System**: Execute tests selectively using tags to support modular and targeted test execution.

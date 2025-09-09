@@ -10,28 +10,28 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { Given, When, Then } from '@cucumber/cucumber';
-import { expect } from '@playwright/test';
-import * as tf from '@tensorflow/tfjs-node';
-import * as fs from 'fs';
-import path from 'path';
-import { getDirName } from '../../utils/dirname.js'; // ESM-safe __dirname
+import { Given, When, Then } from "@cucumber/cucumber";
+import { expect } from "@playwright/test";
+import * as tf from "@tensorflow/tfjs-node";
+import * as fs from "fs";
+import path from "path";
+import { getDirName } from "../../utils/dirname.js"; // ESM-safe __dirname
 
 let model: tf.LayersModel;
 let predictions: { image: string; label: string }[] = [];
 
 const __dirname = getDirName(import.meta.url);
-const KNOWN_IMAGES_DIR = path.join(__dirname, '../../support/images/known'); // ✅ fixed path
+const KNOWN_IMAGES_DIR = path.join(__dirname, "../../support/images/known"); // ✅ fixed path
 
 const EXPECTED_LABELS = [
-  { image: 'cat.jpg', label: 'cat' },
-  { image: 'dog.jpg', label: 'dog' },
+  { image: "cat.jpg", label: "cat" },
+  { image: "dog.jpg", label: "dog" },
 ];
 
 // Load a pre-trained image classification model
 async function loadImageClassificationModel() {
   return await tf.loadLayersModel(
-    'file://./src/support/model/image-classification-model/model.json',
+    "file://./src/support/model/image-classification-model/model.json",
   );
 }
 
@@ -50,15 +50,18 @@ async function predictImageLabel(
   const predictionArray = predictionTensor.dataSync();
   const predictedIndex = predictionArray.indexOf(Math.max(...predictionArray));
 
-  const LABELS = ['cat', 'dog'];
+  const LABELS = ["cat", "dog"];
   return LABELS[predictedIndex];
 }
 
-Given('a pre-trained image classification model for identifying cats and dogs is loaded', async () => {
-  model = await loadImageClassificationModel();
-});
+Given(
+  "a pre-trained image classification model for identifying cats and dogs is loaded",
+  async () => {
+    model = await loadImageClassificationModel();
+  },
+);
 
-When('I input a set of images containing cats and dogs', async () => {
+When("I input a set of images containing cats and dogs", async () => {
   predictions = [];
   for (const { image } of EXPECTED_LABELS) {
     const imagePath = path.join(KNOWN_IMAGES_DIR, image);
@@ -68,22 +71,24 @@ When('I input a set of images containing cats and dogs', async () => {
 });
 
 Then(
-  'each image should be correctly labeled as {string} or {string} with at least {int}% accuracy',
+  "each image should be correctly labeled as {string} or {string} with at least {int}% accuracy",
   (label1: string, label2: string, accuracyThreshold: number) => {
     let correctPredictions = 0;
     for (const { image, label } of predictions) {
-      const expectedLabel = EXPECTED_LABELS.find((el) => el.image === image)?.label;
+      const expectedLabel = EXPECTED_LABELS.find(
+        (el) => el.image === image,
+      )?.label;
       if (expectedLabel === label) {
         correctPredictions++;
       }
     }
 
     const accuracy = (correctPredictions / EXPECTED_LABELS.length) * 100;
-    console.log('Predictions:', predictions);
+    console.log("Predictions:", predictions);
     console.log(`Accuracy: ${accuracy}%`);
 
-    expect([label1, label2]).toContain('cat');
-    expect([label1, label2]).toContain('dog');
+    expect([label1, label2]).toContain("cat");
+    expect([label1, label2]).toContain("dog");
     expect(accuracy >= accuracyThreshold).toBe(true);
   },
 );

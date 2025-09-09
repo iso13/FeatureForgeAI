@@ -32,13 +32,13 @@ export interface DocumentOutput extends DocumentInput {
  */
 export function injectIdsIntoDocs(
   docs: DocumentInput[],
-  prefix = 'doc'
+  prefix = "doc",
 ): DocumentOutput[] {
   return docs.map((doc: DocumentInput, index: number): DocumentOutput => {
     const docId = doc.docId ?? `${prefix}-${index + 1}`; // nullish coalescing
 
     console.log(`[injectIdsIntoDocs] Injected docId: ${docId}`);
-    
+
     return {
       ...doc,
       docId,
