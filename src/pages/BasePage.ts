@@ -10,7 +10,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import type { Page, Locator } from 'playwright';
+import type { Page, Locator } from "playwright";
 
 export abstract class BasePage {
   protected readonly page: Page;
@@ -30,7 +30,7 @@ export abstract class BasePage {
    * Waits for full page load (network idle).
    */
   async waitForLoad(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**

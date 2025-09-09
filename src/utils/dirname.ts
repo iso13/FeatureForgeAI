@@ -10,8 +10,8 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { fileURLToPath } from "url";
+import path from "path";
 
 export function getDirName(metaUrl: string) {
   return path.dirname(fileURLToPath(metaUrl));

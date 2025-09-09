@@ -11,10 +11,10 @@
 // SPDX-License-Identifier: BSL-1.1
 
 // support/resolveMockAPI.ts
-import { MockAccessAPI } from '../mocks/mock-access-api';
+import { MockAccessAPI } from "../mocks/mock-access-api";
 
 export function resolveMockAPI(tags: string[]): any {
-  if (tags.includes('@hipaa') || tags.includes('@physical')) {
+  if (tags.includes("@hipaa") || tags.includes("@physical")) {
     return new MockAccessAPI();
   }
 

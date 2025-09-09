@@ -11,11 +11,16 @@
 // SPDX-License-Identifier: BSL-1.1
 
 // gherkinPrompt.ts (Updated)
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function generateGherkinPrompt(tag: string, featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
+export async function generateGherkinPrompt(
+  tag: string,
+  featureTitle: string,
+  userStory: string,
+  scenarioCount: number,
+): Promise<string> {
   const prompt = `Generate EXACTLY this pattern. DO NOT deviate from this format:
 
 ${tag}
@@ -66,43 +71,58 @@ MANDATORY RULES:
 - Copy this format EXACTLY`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [{ role: 'user', content: prompt }],
+    model: "gpt-4",
+    messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
     max_tokens: 3000,
   });
 
-  const content = response.choices?.[0]?.message?.content || '';
-  return content.replace(/```gherkin|```/g, '').trim();
+  const content = response.choices?.[0]?.message?.content || "";
+  return content.replace(/```gherkin|```/g, "").trim();
 }
 
 // enforceDeclarativeSteps.ts (Updated)
 export function enforceDeclarativeSteps(content: string): string {
   let transformed = content
     .replace(/When I enter user details(?: with (.*?))?/gi, (_, qualifier) => {
-      return `When the user provides information${qualifier ? ` with ${qualifier}` : ''}`;
+      return `When the user provides information${qualifier ? ` with ${qualifier}` : ""}`;
     })
-    .replace(/When I leave mandatory fields empty/gi, 'When the user provides incomplete account information')
-    .replace(/When the user submits the "Add User" action/gi, 'And the user submits the user creation')
-    .replace(/Then an error message "(.*?)" should be displayed/gi, 'Then the system should display <$1>')
-    .replace(/Then a confirmation message "(.*?)" should be displayed/gi, 'Then the system should display <$1>')
-    .replace(/Then the new user should be listed in the system/gi, 'And the new account should be created');
+    .replace(
+      /When I leave mandatory fields empty/gi,
+      "When the user provides incomplete account information",
+    )
+    .replace(
+      /When the user submits the "Add User" action/gi,
+      "And the user submits the user creation",
+    )
+    .replace(
+      /Then an error message "(.*?)" should be displayed/gi,
+      "Then the system should display <$1>",
+    )
+    .replace(
+      /Then a confirmation message "(.*?)" should be displayed/gi,
+      "Then the system should display <$1>",
+    )
+    .replace(
+      /Then the new user should be listed in the system/gi,
+      "And the new account should be created",
+    );
 
   // Fix multiple When per scenario
-  const lines = transformed.split('\n');
+  const lines = transformed.split("\n");
   let inScenario = false;
   let whenCount = 0;
-  const fixedLines = lines.map(line => {
-    if (line.trim().startsWith('Scenario:')) {
+  const fixedLines = lines.map((line) => {
+    if (line.trim().startsWith("Scenario:")) {
       inScenario = true;
       whenCount = 0;
     }
-    if (inScenario && line.trim().startsWith('When ')) {
+    if (inScenario && line.trim().startsWith("When ")) {
       whenCount++;
-      if (whenCount > 1) return line.replace('When ', 'And ');
+      if (whenCount > 1) return line.replace("When ", "And ");
     }
     return line;
   });
 
-  return fixedLines.join('\n');
+  return fixedLines.join("\n");
 }

@@ -10,27 +10,32 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { spawn } from 'child_process';
-import * as path from 'path';
-import * as process from 'process';
+import { spawn } from "child_process";
+import * as path from "path";
+import * as process from "process";
 
 const args = process.argv.slice(2); // forward all args (e.g., --tags "@hipaa-164.310-a-1")
-const cucumberPath = path.resolve('node_modules/.bin/cucumber-js');
+const cucumberPath = path.resolve("node_modules/.bin/cucumber-js");
 
 const command = [
   cucumberPath,
-  '--config', 'cucumber.mjs',
-  '--format', 'cucumber-console-formatter',
+  "--config",
+  "cucumber.mjs",
+  "--format",
+  "cucumber-console-formatter",
   ...args,
 ];
 
-const proc = spawn('tsx', command, { stdio: 'inherit', shell: true });
+const proc = spawn("tsx", command, { stdio: "inherit", shell: true });
 
-proc.on('exit', (code) => {
+proc.on("exit", (code) => {
   if (code === 0) {
     // archive after success
-    const archive = spawn('tsx', ['src/scripts/archiveCucumberReports.ts'], { stdio: 'inherit', shell: true });
-    archive.on('exit', (archiveCode) => process.exit(archiveCode));
+    const archive = spawn("tsx", ["src/scripts/archiveCucumberReports.ts"], {
+      stdio: "inherit",
+      shell: true,
+    });
+    archive.on("exit", (archiveCode) => process.exit(archiveCode));
   } else {
     process.exit(code ?? 1);
   }

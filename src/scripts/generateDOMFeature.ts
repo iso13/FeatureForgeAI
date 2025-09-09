@@ -10,20 +10,20 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { DOMGenerator } from '../utils/dom-generator';
-import { enforceDeclarativeSteps } from '../utils/enforceDeclarative';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import inquirer from 'inquirer';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
-import OpenAI from 'openai';
+import { DOMGenerator } from "../utils/dom-generator";
+import { enforceDeclarativeSteps } from "../utils/enforceDeclarative";
+import { writeFile } from "fs/promises";
+import { join } from "path";
+import inquirer from "inquirer";
+import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+import OpenAI from "openai";
 
 dotenv.config();
 
-const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
-const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
+const FEATURES_DIR = path.resolve(__dirname, "../../src/features");
+const STEPS_DIR = path.resolve(__dirname, "../../src/steps");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -48,38 +48,42 @@ Gherkin Feature:
 ${gherkin}`;
 
   const res = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: "gpt-4",
     temperature: 0.2,
     max_tokens: 2800,
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: "user", content: prompt }],
   });
 
-  return res.choices?.[0]?.message?.content
-    ?.replace(/```typescript/g, '')
-    .replace(/```/g, '')
-    .trim() ?? '';
+  return (
+    res.choices?.[0]?.message?.content
+      ?.replace(/```typescript/g, "")
+      .replace(/```/g, "")
+      .trim() ?? ""
+  );
 }
 
 async function main() {
   const { url, featureName } = await inquirer.prompt([
     {
-      type: 'input',
-      name: 'url',
-      message: 'Enter the page URL to analyze:',
-      validate: (input: string) => input.startsWith('http') ? true : 'Please enter a valid URL.',
+      type: "input",
+      name: "url",
+      message: "Enter the page URL to analyze:",
+      validate: (input: string) =>
+        input.startsWith("http") ? true : "Please enter a valid URL.",
     },
     {
-      type: 'input',
-      name: 'featureName',
-      message: 'Enter the feature name (e.g., Upload Document):',
-      validate: (input: string) => input.trim().length > 2 || 'Feature name is required.',
+      type: "input",
+      name: "featureName",
+      message: "Enter the feature name (e.g., Upload Document):",
+      validate: (input: string) =>
+        input.trim().length > 2 || "Feature name is required.",
     },
   ]);
 
   const generator = new DOMGenerator();
   const outputPath = FEATURES_DIR;
-  const slug = featureName.toLowerCase().replace(/\s+/g, '-');
-  const stepSlug = featureName.toLowerCase().replace(/\s+/g, '');
+  const slug = featureName.toLowerCase().replace(/\s+/g, "-");
+  const stepSlug = featureName.toLowerCase().replace(/\s+/g, "");
 
   try {
     const analysis = await generator.analyzePage(url);
@@ -90,13 +94,13 @@ async function main() {
     const featurePath = join(FEATURES_DIR, `${slug}.feature`);
     const stepPath = join(STEPS_DIR, `${stepSlug}.steps.ts`);
 
-    await writeFile(featurePath, normalized, 'utf8');
-    await writeFile(stepPath, stepDefs, 'utf8');
+    await writeFile(featurePath, normalized, "utf8");
+    await writeFile(stepPath, stepDefs, "utf8");
 
     console.log(`Feature saved to: ${featurePath}`);
     console.log(`Step definitions saved to: ${stepPath}`);
   } catch (error) {
-    console.error('Failed to generate DOM-based feature:', error);
+    console.error("Failed to generate DOM-based feature:", error);
   } finally {
     await generator.cleanup();
   }

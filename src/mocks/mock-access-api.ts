@@ -4,7 +4,7 @@
  * Used by HIPAA and audit compliance features in FeatureForge AI
  */
 
-import type { AccessAPI } from '../types/access-api';
+import type { AccessAPI } from "../types/access-api";
 
 export class MockAccessAPI implements AccessAPI {
   private accessLog: Record<string, any> = {};
@@ -36,9 +36,9 @@ export class MockAccessAPI implements AccessAPI {
 
       if (this.anomalies[userId] >= 3) {
         this.alerts.push({
-          type: 'unauthorized-access',
+          type: "unauthorized-access",
           userId,
-          severity: 'critical',
+          severity: "critical",
           timestamp: new Date().toISOString(),
         });
       }
@@ -55,7 +55,7 @@ export class MockAccessAPI implements AccessAPI {
 
   async checkAccessAnomalies(userId: string): Promise<{ status: string }> {
     const flagged = this.anomalies[userId] >= 3;
-    return { status: flagged ? 'flagged' : 'clear' };
+    return { status: flagged ? "flagged" : "clear" };
   }
 
   async getSecurityAlerts(): Promise<any[]> {

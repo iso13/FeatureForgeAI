@@ -1,6 +1,6 @@
 // src/scripts/featureGeneratorOpenAI.ts
 /**
- * FeatureForge AI - v19 Enhanced OpenAI Feature Generator 
+ * FeatureForge AI - v19 Enhanced OpenAI Feature Generator
  * Copyright (c) 2024–2025 David Tran
  * Licensed under the Business Source License 1.1
  * See LICENSE.txt for full terms
@@ -10,12 +10,12 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import OpenAI from 'openai';
-import fsExtra from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import inquirer from 'inquirer';
+import OpenAI from "openai";
+import fsExtra from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import inquirer from "inquirer";
 
 dotenv.config();
 
@@ -23,8 +23,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
-const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
+const FEATURES_DIR = path.resolve(__dirname, "../../src/features");
+const STEPS_DIR = path.resolve(__dirname, "../../src/steps");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -47,33 +47,35 @@ interface FeatureRequest {
 }
 
 class EnhancedOpenAIGenerator {
-
   /**
    * Generate both feature and step definitions in a single OpenAI call
    */
-  async generateBothInParallel(featureRequest: FeatureRequest): Promise<GenerationResult> {
+  async generateBothInParallel(
+    featureRequest: FeatureRequest,
+  ): Promise<GenerationResult> {
     const startTime = Date.now();
-    
+
     try {
-      console.log('🤖 Generating feature and step definitions in one OpenAI call...');
-      
+      console.log(
+        "🤖 Generating feature and step definitions in one OpenAI call...",
+      );
+
       // Generate both in a single call for perfect synchronization
       const result = await this.generateBothWithSingleCall(featureRequest);
-      
+
       const generationTime = Date.now() - startTime;
-      
+
       return {
         featureContent: result.feature,
         stepDefinitions: result.steps,
         metadata: {
-          featureName: featureRequest.featureTitle,  // Fixed: use featureTitle
+          featureName: featureRequest.featureTitle, // Fixed: use featureTitle
           generationTime,
-          scenarioCount: this.countScenarios(result.feature)
-        }
+          scenarioCount: this.countScenarios(result.feature),
+        },
       };
-      
     } catch (error) {
-      console.error('❌ Single-call OpenAI generation failed:', error);
+      console.error("❌ Single-call OpenAI generation failed:", error);
       throw error;
     }
   }
@@ -81,9 +83,11 @@ class EnhancedOpenAIGenerator {
   /**
    * Generate both feature and step definitions in a single OpenAI call for perfect sync
    */
-  private async generateBothWithSingleCall(featureRequest: FeatureRequest): Promise<{feature: string, steps: string}> {
+  private async generateBothWithSingleCall(
+    featureRequest: FeatureRequest,
+  ): Promise<{ feature: string; steps: string }> {
     const tag = this.generateFeatureTag(featureRequest.featureTitle);
-    
+
     const prompt = `You are a BDD expert. Generate BOTH a Cucumber feature file AND matching step definitions.
 
 TASK: Create feature file + step definitions for "${featureRequest.featureTitle}"
@@ -179,24 +183,26 @@ REQUIREMENTS:
 OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_DEFINITIONS---"`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.1,
-      max_tokens: 4000
+      max_tokens: 4000,
     });
 
-    const content = response.choices?.[0]?.message?.content || '';
-    
+    const content = response.choices?.[0]?.message?.content || "";
+
     // Split the response into feature and step definitions
-    const parts = content.split('---STEP_DEFINITIONS---');
-    
+    const parts = content.split("---STEP_DEFINITIONS---");
+
     if (parts.length !== 2) {
-      throw new Error('OpenAI did not return properly formatted response with separator');
+      throw new Error(
+        "OpenAI did not return properly formatted response with separator",
+      );
     }
-    
+
     const feature = this.cleanFeatureResponse(parts[0].trim(), tag);
     const steps = this.cleanStepDefinitionsResponse(parts[1].trim());
-    
+
     return { feature, steps };
   }
 
@@ -205,32 +211,37 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
    */
   private cleanFeatureResponse(content: string, tag: string): string {
     // Remove code block markers
-    content = content.replace(/```gherkin|```/g, '').trim();
-    
+    content = content.replace(/```gherkin|```/g, "").trim();
+
     // Remove anything before the tag or Feature
-    content = content.replace(/^.*?(?=@|Feature:)/s, '');
-    
+    content = content.replace(/^.*?(?=@|Feature:)/s, "");
+
     // Remove duplicate tags
-    const tagPattern = new RegExp(`^\\s*${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'gm');
-    content = content.replace(tagPattern, '');
-    
+    const tagPattern = new RegExp(
+      `^\\s*${tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`,
+      "gm",
+    );
+    content = content.replace(tagPattern, "");
+
     // Ensure proper Feature line
-    content = content.replace(/^\s*Feature:/m, 'Feature:');
-    
+    content = content.replace(/^\s*Feature:/m, "Feature:");
+
     // Add tag at the beginning if not present
-    if (!content.startsWith('@')) {
+    if (!content.startsWith("@")) {
       content = `${tag}\n${content}`;
     }
-    
+
     // Remove any "In order to..." lines that got inserted
-    content = content.replace(/^\s*In order to[^\n]*\n/gm, '');
-    
+    content = content.replace(/^\s*In order to[^\n]*\n/gm, "");
+
     // Remove OpenAI explanations
-    const explanationIndex = content.search(/\bThis feature file\b|\bNote:\b|\bExplanation:\b/i);
+    const explanationIndex = content.search(
+      /\bThis feature file\b|\bNote:\b|\bExplanation:\b/i,
+    );
     if (explanationIndex !== -1) {
       content = content.slice(0, explanationIndex).trim();
     }
-    
+
     return content;
   }
 
@@ -239,57 +250,75 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
    */
   private cleanStepDefinitionsResponse(content: string): string {
     // Remove code block markers
-    content = content.replace(/```typescript|```ts|```/g, '').trim();
-    
+    content = content.replace(/```typescript|```ts|```/g, "").trim();
+
     // Remove any leading explanatory text
-    const importIndex = content.indexOf('import');
+    const importIndex = content.indexOf("import");
     if (importIndex > 0) {
       content = content.substring(importIndex);
     }
-    
+
     // Remove trailing explanations
-    const explanationIndex = content.search(/\n\n\/\/ Note:|This step definitions|These step definitions/i);
+    const explanationIndex = content.search(
+      /\n\n\/\/ Note:|This step definitions|These step definitions/i,
+    );
     if (explanationIndex !== -1) {
       content = content.slice(0, explanationIndex).trim();
     }
-    
+
     // Remove all comments
-    content = content.replace(/^\s*\/\/.*$/gm, '');
-    
+    content = content.replace(/^\s*\/\/.*$/gm, "");
+
     // Clean up extra whitespace
-    content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
-    
+    content = content.replace(/\n\s*\n\s*\n/g, "\n\n");
+
     return content;
   }
 
   /**
    * Validate that generated content is declarative
    */
-  private validateDeclarativeContent(content: string): { isValid: boolean; violations: string[] } {
+  private validateDeclarativeContent(content: string): {
+    isValid: boolean;
+    violations: string[];
+  } {
     const violations: string[] = [];
-    
+
     // Check for forbidden UI terms
-    const forbiddenTerms = ['click', 'button', 'field', 'page', 'form', 'input', 'dropdown', 'I should see', 'should be visible'];
-    forbiddenTerms.forEach(term => {
+    const forbiddenTerms = [
+      "click",
+      "button",
+      "field",
+      "page",
+      "form",
+      "input",
+      "dropdown",
+      "I should see",
+      "should be visible",
+    ];
+    forbiddenTerms.forEach((term) => {
       if (content.toLowerCase().includes(term.toLowerCase())) {
         violations.push(`Contains forbidden UI term: "${term}"`);
       }
     });
-    
+
     // Check for Given steps in scenarios (after Background)
-    const scenarioRegex = /Scenario:[^\n]*\n([\s\S]*?)(?=\nScenario:|\n@|\n*$)/g;
+    const scenarioRegex =
+      /Scenario:[^\n]*\n([\s\S]*?)(?=\nScenario:|\n@|\n*$)/g;
     let match;
     while ((match = scenarioRegex.exec(content)) !== null) {
       const scenarioBody = match[1];
-      if (scenarioBody.includes('\n    Given ')) {
-        violations.push('Contains Given steps in scenario (should be in Background only)');
+      if (scenarioBody.includes("\n    Given ")) {
+        violations.push(
+          "Contains Given steps in scenario (should be in Background only)",
+        );
         break;
       }
     }
-    
+
     return {
       isValid: violations.length === 0,
-      violations
+      violations,
     };
   }
 
@@ -302,9 +331,11 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
   }
 
   /**
-   * Generate only step definitions (public method) - now uses single call approach  
+   * Generate only step definitions (public method) - now uses single call approach
    */
-  async generateStepDefinitionsOnly(featureRequest: FeatureRequest): Promise<string> {
+  async generateStepDefinitionsOnly(
+    featureRequest: FeatureRequest,
+  ): Promise<string> {
     const result = await this.generateBothWithSingleCall(featureRequest);
     return result.steps;
   }
@@ -315,27 +346,36 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
   async writeFilesInParallel(
     result: GenerationResult,
     featurePath: string,
-    stepsPath: string
+    stepsPath: string,
   ): Promise<void> {
-    
     const writePromises = [
-      fsExtra.ensureDir(FEATURES_DIR)
-        .then(() => fsExtra.writeFile(featurePath, result.featureContent, 'utf8'))
+      fsExtra
+        .ensureDir(FEATURES_DIR)
+        .then(() =>
+          fsExtra.writeFile(featurePath, result.featureContent, "utf8"),
+        )
         .then(() => console.log(`✅ Feature file saved: ${featurePath}`))
-        .catch(error => console.error(`❌ Failed to write feature file: ${error}`)),
-      
-      fsExtra.ensureDir(STEPS_DIR)
-        .then(() => fsExtra.writeFile(stepsPath, result.stepDefinitions, 'utf8'))
+        .catch((error) =>
+          console.error(`❌ Failed to write feature file: ${error}`),
+        ),
+
+      fsExtra
+        .ensureDir(STEPS_DIR)
+        .then(() =>
+          fsExtra.writeFile(stepsPath, result.stepDefinitions, "utf8"),
+        )
         .then(() => console.log(`✅ Step definitions saved: ${stepsPath}`))
-        .catch(error => console.error(`❌ Failed to write steps file: ${error}`))
+        .catch((error) =>
+          console.error(`❌ Failed to write steps file: ${error}`),
+        ),
     ];
-    
+
     await Promise.allSettled(writePromises);
   }
 
   // Utility methods
   private generateFeatureTag(featureTitle: string): string {
-    return `@${featureTitle.replace(/\s+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, str => str.toLowerCase())}`;
+    return `@${featureTitle.replace(/\s+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, (str) => str.toLowerCase())}`;
   }
 
   private countScenarios(featureContent: string): number {
@@ -347,74 +387,88 @@ OUTPUT: Feature file first, then step definitions. Separate them with "---STEP_D
  * Enhanced interactive prompt for OpenAI generation
  */
 async function runInteractivePrompt() {
-  console.log('🤖 FeatureForge AI - v19 Enhanced OpenAI Generator (Single Call)\n');
-  
+  console.log(
+    "🤖 FeatureForge AI - v19 Enhanced OpenAI Generator (Single Call)\n",
+  );
+
   const answers = await inquirer.prompt([
     {
-      type: 'input',
-      name: 'featureTitle',
-      message: 'Enter the feature title:',
-      validate: input => input.trim() ? true : 'Feature title cannot be empty.',
+      type: "input",
+      name: "featureTitle",
+      message: "Enter the feature title:",
+      validate: (input) =>
+        input.trim() ? true : "Feature title cannot be empty.",
     },
     {
-      type: 'input',
-      name: 'userStory',
-      message: 'Enter the user story (As a... I want... So that...):',
-      validate: input => input.trim().toLowerCase().startsWith('as ') ? true : 'User story must start with "As a...".',
+      type: "input",
+      name: "userStory",
+      message: "Enter the user story (As a... I want... So that...):",
+      validate: (input) =>
+        input.trim().toLowerCase().startsWith("as ")
+          ? true
+          : 'User story must start with "As a...".',
     },
     {
-      type: 'input',
-      name: 'scenarioCount',
-      message: 'Enter the number of core scenarios (1–6):',
-      default: '3',
-      validate: input => {
+      type: "input",
+      name: "scenarioCount",
+      message: "Enter the number of core scenarios (1–6):",
+      default: "3",
+      validate: (input) => {
         const n = parseInt(input, 10);
-        return (n >= 1 && n <= 6) ? true : 'Must be between 1 and 6.';
-      }
-    }
+        return n >= 1 && n <= 6 ? true : "Must be between 1 and 6.";
+      },
+    },
   ]);
 
   const featureRequest: FeatureRequest = {
     featureTitle: answers.featureTitle,
     userStory: answers.userStory,
-    scenarioCount: parseInt(answers.scenarioCount, 10)
+    scenarioCount: parseInt(answers.scenarioCount, 10),
   };
 
   const generator = new EnhancedOpenAIGenerator();
-  
+
   try {
     // Always generate both using single-call approach
     const result = await generator.generateBothInParallel(featureRequest);
-    
+
     // Validate content quality
-    const validation = generator['validateDeclarativeContent'](result.featureContent);
+    const validation = generator["validateDeclarativeContent"](
+      result.featureContent,
+    );
     if (!validation.isValid) {
-      console.warn('⚠️  Generated content has issues:');
-      validation.violations.forEach(violation => console.warn(`   - ${violation}`));
+      console.warn("⚠️  Generated content has issues:");
+      validation.violations.forEach((violation) =>
+        console.warn(`   - ${violation}`),
+      );
     }
-    
-    const sanitizedName = featureRequest.featureTitle.replace(/\s+/g, '');
+
+    const sanitizedName = featureRequest.featureTitle.replace(/\s+/g, "");
     const featurePath = path.join(FEATURES_DIR, `${sanitizedName}.feature`);
-    const stepsPath = path.join(STEPS_DIR, `${sanitizedName.toLowerCase()}.steps.ts`);
-    
+    const stepsPath = path.join(
+      STEPS_DIR,
+      `${sanitizedName.toLowerCase()}.steps.ts`,
+    );
+
     await generator.writeFilesInParallel(result, featurePath, stepsPath);
-    
-    console.log('\n📊 Generation Summary:');
+
+    console.log("\n📊 Generation Summary:");
     console.log(`   🎯 Feature: ${result.metadata.featureName}`);
     console.log(`   📝 Scenarios: ${result.metadata.scenarioCount}`);
     console.log(`   ⚡ Generation time: ${result.metadata.generationTime}ms`);
     console.log(`   🤖 v19 Single-call OpenAI generation completed!`);
-    console.log(`   📄 Generated both feature file and step definitions in one call`);
-    
+    console.log(
+      `   📄 Generated both feature file and step definitions in one call`,
+    );
+
     if (validation.isValid) {
       console.log(`   ✅ Content quality: All declarative practices followed!`);
     }
-    
   } catch (error) {
-    console.error('❌ v19 OpenAI generation failed:', error);
-    
-    if (error instanceof Error && error.message.includes('API key')) {
-      console.log('💡 Make sure your OPENAI_API_KEY is set in your .env file');
+    console.error("❌ v19 OpenAI generation failed:", error);
+
+    if (error instanceof Error && error.message.includes("API key")) {
+      console.log("💡 Make sure your OPENAI_API_KEY is set in your .env file");
     }
   }
 }

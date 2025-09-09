@@ -12,11 +12,16 @@
 
 // Refactored structure:
 // src/utils/gherkinPrompt.ts
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function generateGherkinPrompt(tag: string, featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
+export async function generateGherkinPrompt(
+  tag: string,
+  featureTitle: string,
+  userStory: string,
+  scenarioCount: number,
+): Promise<string> {
   const declarativeGuidelines = `
 CRITICAL DECLARATIVE BDD PRINCIPLES:
 1. Focus on BUSINESS OUTCOMES, not UI interactions
@@ -146,50 +151,55 @@ MANDATORY RULES:
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.2, // Lower temperature for more consistent, structured output
       max_tokens: 3000, // Increased for more comprehensive scenarios
     });
 
     if (response.choices && response.choices.length > 0) {
-      const content = response.choices[0].message?.content || '';
-      let cleaned = content.replace(/```gherkin|```/g, '').trim();
+      const content = response.choices[0].message?.content || "";
+      let cleaned = content.replace(/```gherkin|```/g, "").trim();
 
       // Remove any leading explanation before @tag or Feature:
-      cleaned = cleaned.replace(/^.*?(?=@|Feature:)/s, '');
+      cleaned = cleaned.replace(/^.*?(?=@|Feature:)/s, "");
 
       // Remove ALL instances of the tag first to avoid duplicates
-      const tagPattern = new RegExp(`^\\s*${tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'gm');
-      cleaned = cleaned.replace(tagPattern, '');
+      const tagPattern = new RegExp(
+        `^\\s*${tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`,
+        "gm",
+      );
+      cleaned = cleaned.replace(tagPattern, "");
 
       // Add the tag exactly once at the beginning
-      cleaned = cleaned.replace(/^\s*Feature:/m, 'Feature:');
+      cleaned = cleaned.replace(/^\s*Feature:/m, "Feature:");
       cleaned = `${tag}\n${cleaned}`;
 
       // Remove trailing explanation/commentary
-      const explanationIndex = cleaned.search(/\b(This feature file|All steps are|In this feature|Note:|Example:)\b/i);
+      const explanationIndex = cleaned.search(
+        /\b(This feature file|All steps are|In this feature|Note:|Example:)\b/i,
+      );
       if (explanationIndex !== -1) {
         cleaned = cleaned.slice(0, explanationIndex).trim();
       }
 
       // Fix any "And" statements that should be "Given" at scenario start
-      cleaned = cleaned.replace(/(Scenario:.*?\n)(\s*)And\b/g, '$1$2Given');
+      cleaned = cleaned.replace(/(Scenario:.*?\n)(\s*)And\b/g, "$1$2Given");
 
       // Clean up any double spaces or inconsistent formatting
       cleaned = cleaned
-        .replace(/\n\s*\n\s*\n/g, '\n\n') // Remove triple line breaks
-        .replace(/^\s+$/gm, '') // Remove lines with only spaces
-        .replace(/\t/g, '  '); // Convert tabs to spaces
+        .replace(/\n\s*\n\s*\n/g, "\n\n") // Remove triple line breaks
+        .replace(/^\s+$/gm, "") // Remove lines with only spaces
+        .replace(/\t/g, "  "); // Convert tabs to spaces
 
       return cleaned;
     } else {
-      console.error('No content received from OpenAI API.');
-      throw new Error('No content received from OpenAI API.');
+      console.error("No content received from OpenAI API.");
+      throw new Error("No content received from OpenAI API.");
     }
   } catch (error) {
-    console.error('Error generating Gherkin content:', error);
-    throw new Error('Failed to generate Gherkin content.');
+    console.error("Error generating Gherkin content:", error);
+    throw new Error("Failed to generate Gherkin content.");
   }
 }
 
@@ -200,38 +210,46 @@ MANDATORY RULES:
  */
 export function validateGeneratedGherkin(content: string): string[] {
   const warnings: string[] = [];
-  
+
   // Check for imperative language patterns
   if (/\bI\s+(click|fill|enter|go|see|navigate)/gi.test(content)) {
-    warnings.push("⚠️ Imperative language detected - should use 'the user' format");
+    warnings.push(
+      "⚠️ Imperative language detected - should use 'the user' format",
+    );
   }
-  
+
   // Check for UI-coupled terms
   if (/\b(button|field|form|page|click|navigate)\b/gi.test(content)) {
-    warnings.push("⚠️ UI-coupled language detected - use business-focused terms");
+    warnings.push(
+      "⚠️ UI-coupled language detected - use business-focused terms",
+    );
   }
-  
+
   // Check for hard-coded values
   if (/"[^"<>]*@[^"]*\.[^"]*"|"test[^"]*"|"admin[^"]*"/gi.test(content)) {
-    warnings.push("🔧 Hard-coded test data detected - should use parameterized values");
+    warnings.push(
+      "🔧 Hard-coded test data detected - should use parameterized values",
+    );
   }
-  
+
   // Check for missing parameterization
   if (/"[^"<>]+"/.test(content) && !/<[^>]+>/.test(content)) {
-    warnings.push("📝 Consider parameterizing quoted values with angle brackets");
+    warnings.push(
+      "📝 Consider parameterizing quoted values with angle brackets",
+    );
   }
-  
+
   // Check scenario count
   const scenarioCount = (content.match(/^\s*Scenario:/gm) || []).length;
   if (scenarioCount === 0) {
     warnings.push("❌ No scenarios found in generated content");
   }
-  
+
   // Check for background section
   if (!/Background:/i.test(content)) {
     warnings.push("📋 Consider adding a Background section for common setup");
   }
-  
+
   return warnings;
 }
 
@@ -241,13 +259,16 @@ export function validateGeneratedGherkin(content: string): string[] {
  * @param context - Additional context for the scenario
  * @returns Specialized prompt for the scenario type
  */
-export function generateScenarioPrompt(scenarioType: 'happy-path' | 'error-handling' | 'edge-case' | 'permissions', context: string): string {
+export function generateScenarioPrompt(
+  scenarioType: "happy-path" | "error-handling" | "edge-case" | "permissions",
+  context: string,
+): string {
   const basePrompts = {
-    'happy-path': `Focus on the successful completion of the business process with valid data and proper permissions.`,
-    'error-handling': `Focus on system validation and error responses when invalid data or improper actions are attempted.`,
-    'edge-case': `Focus on boundary conditions, unusual but valid inputs, and system limits.`,
-    'permissions': `Focus on access control, authorization checks, and role-based restrictions.`
+    "happy-path": `Focus on the successful completion of the business process with valid data and proper permissions.`,
+    "error-handling": `Focus on system validation and error responses when invalid data or improper actions are attempted.`,
+    "edge-case": `Focus on boundary conditions, unusual but valid inputs, and system limits.`,
+    permissions: `Focus on access control, authorization checks, and role-based restrictions.`,
   };
-  
+
   return `${basePrompts[scenarioType]} Context: ${context}. Use declarative, business-focused language with parameterized test data.`;
 }

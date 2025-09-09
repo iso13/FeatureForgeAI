@@ -10,12 +10,12 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import OpenAI from 'openai';
-import dotenv from 'dotenv';
-import path from 'path';
-import fsExtra from 'fs-extra';
-import inquirer from 'inquirer';
-import { fileURLToPath } from 'url';
+import OpenAI from "openai";
+import dotenv from "dotenv";
+import path from "path";
+import fsExtra from "fs-extra";
+import inquirer from "inquirer";
+import { fileURLToPath } from "url";
 
 const { writeFile, ensureDir } = fsExtra;
 const __filename = fileURLToPath(import.meta.url);
@@ -27,10 +27,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const FEATURES_DIR = path.resolve(__dirname, '../../src/features');
-const STEPS_DIR = path.resolve(__dirname, '../../src/steps');
+const FEATURES_DIR = path.resolve(__dirname, "../../src/features");
+const STEPS_DIR = path.resolve(__dirname, "../../src/steps");
 
-async function generateStepDefinitions(gherkinContent: string): Promise<string> {
+async function generateStepDefinitions(
+  gherkinContent: string,
+): Promise<string> {
   const prompt = `Generate TypeScript step definitions from the following Gherkin feature using Cucumber and Playwright.
 
 REQUIREMENTS:
@@ -62,20 +64,27 @@ Gherkin Feature:
 ${gherkinContent}`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [{ role: 'user', content: prompt }],
+    model: "gpt-4",
+    messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
     max_tokens: 3000,
   });
 
   const raw = response.choices?.[0]?.message?.content;
-  return typeof raw === 'string'
-    ? raw.replace(/```typescript/g, '').replace(/```/g, '').trim()
-    : '';
+  return typeof raw === "string"
+    ? raw
+        .replace(/```typescript/g, "")
+        .replace(/```/g, "")
+        .trim()
+    : "";
 }
 
-async function generateFeatureFile(featureTitle: string, userStory: string, scenarioCount: number): Promise<string> {
-  const tag = `@${featureTitle.replace(/\s+/g, '').toLowerCase()}`;
+async function generateFeatureFile(
+  featureTitle: string,
+  userStory: string,
+  scenarioCount: number,
+): Promise<string> {
+  const tag = `@${featureTitle.replace(/\s+/g, "").toLowerCase()}`;
   const prompt = `Generate a declarative Gherkin feature file using BDD best practices.
 
 REQUIREMENTS:
@@ -91,67 +100,91 @@ REQUIREMENTS:
 Only return valid Gherkin. Do not include comments or explanation.`;
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [{ role: 'user', content: prompt }],
+    model: "gpt-4",
+    messages: [{ role: "user", content: prompt }],
     temperature: 0.1,
     max_tokens: 2000,
   });
 
   const raw = response.choices?.[0]?.message?.content;
-  const cleaned = typeof raw === 'string'
-    ? raw.replace(/```gherkin|```/g, '').replace(/^.*?(?=@|Feature:)/s, '').trim()
-    : '';
+  const cleaned =
+    typeof raw === "string"
+      ? raw
+          .replace(/```gherkin|```/g, "")
+          .replace(/^.*?(?=@|Feature:)/s, "")
+          .trim()
+      : "";
 
   const alreadyTagged = cleaned.trim().startsWith(tag);
   const tagged = alreadyTagged ? cleaned.trim() : `${tag}\n${cleaned.trim()}`;
-  return tagged.split('\n').filter(line => !line.startsWith('This') && !line.startsWith('All')).join('\n');
+  return tagged
+    .split("\n")
+    .filter((line) => !line.startsWith("This") && !line.startsWith("All"))
+    .join("\n");
 }
 
 async function promptForFeatureAndGenerate() {
   const answers = await inquirer.prompt([
     {
-      type: 'input',
-      name: 'featureTitle',
-      message: 'Enter the feature title:',
-      validate: (input: string) => input.trim() ? true : 'Feature title cannot be empty.',
+      type: "input",
+      name: "featureTitle",
+      message: "Enter the feature title:",
+      validate: (input: string) =>
+        input.trim() ? true : "Feature title cannot be empty.",
     },
     {
-      type: 'input',
-      name: 'userStory',
-      message: 'Enter the user story (e.g., "As a user, I want to log in so that I can access my account"):',
-      validate: (input: string) => input.trim().startsWith('As ') ? true : 'User story must start with "As a...".',
+      type: "input",
+      name: "userStory",
+      message:
+        'Enter the user story (e.g., "As a user, I want to log in so that I can access my account"):',
+      validate: (input: string) =>
+        input.trim().startsWith("As ")
+          ? true
+          : 'User story must start with "As a...".',
     },
     {
-      type: 'input',
-      name: 'scenarioCount',
-      message: 'Enter the number of scenarios (default 1, max 6):',
-      default: '1',
+      type: "input",
+      name: "scenarioCount",
+      message: "Enter the number of scenarios (default 1, max 6):",
+      default: "1",
       validate: (input: string) => {
         const num = parseInt(input, 10);
-        return (num >= 1 && num <= 6) ? true : 'Please enter a number between 1 and 6.';
-      }
-    }
+        return num >= 1 && num <= 6
+          ? true
+          : "Please enter a number between 1 and 6.";
+      },
+    },
   ]);
 
   const { featureTitle, userStory, scenarioCount } = answers;
-  console.log('Generating declarative feature and steps...');
+  console.log("Generating declarative feature and steps...");
 
-  const gherkinPromise = generateFeatureFile(featureTitle, userStory, parseInt(scenarioCount));
+  const gherkinPromise = generateFeatureFile(
+    featureTitle,
+    userStory,
+    parseInt(scenarioCount),
+  );
   const stepDefsPromise = gherkinPromise.then(generateStepDefinitions);
 
-  const [gherkinContent, stepDefs] = await Promise.all([gherkinPromise, stepDefsPromise]);
-
-  const featureFilePath = path.join(FEATURES_DIR, `${featureTitle.replace(/\s+/g, '')}.feature`);
-  const stepFilePath = path.join(STEPS_DIR, `${featureTitle.replace(/\s+/g, '').toLowerCase()}.steps.ts`);
-
-  await Promise.all([
-    ensureDir(FEATURES_DIR),
-    ensureDir(STEPS_DIR),
+  const [gherkinContent, stepDefs] = await Promise.all([
+    gherkinPromise,
+    stepDefsPromise,
   ]);
 
+  const featureFilePath = path.join(
+    FEATURES_DIR,
+    `${featureTitle.replace(/\s+/g, "")}.feature`,
+  );
+  const stepFilePath = path.join(
+    STEPS_DIR,
+    `${featureTitle.replace(/\s+/g, "").toLowerCase()}.steps.ts`,
+  );
+
+  await Promise.all([ensureDir(FEATURES_DIR), ensureDir(STEPS_DIR)]);
+
   await Promise.all([
-    writeFile(featureFilePath, gherkinContent, 'utf8'),
-    writeFile(stepFilePath, stepDefs, 'utf8'),
+    writeFile(featureFilePath, gherkinContent, "utf8"),
+    writeFile(stepFilePath, stepDefs, "utf8"),
   ]);
 
   console.log(`Feature file saved: ${featureFilePath}`);

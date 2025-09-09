@@ -10,8 +10,8 @@
 // SPDX-License-Identifier: BSL-1.1
 
 // src/support/pageFixture.ts
-import type { Browser, BrowserContext, Page } from 'playwright';
-import {chromium} from 'playwright';
+import type { Browser, BrowserContext, Page } from "playwright";
+import { chromium } from "playwright";
 class PageFixture {
   browser: Browser | undefined;
   context: BrowserContext | undefined;

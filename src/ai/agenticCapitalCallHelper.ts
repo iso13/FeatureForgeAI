@@ -15,14 +15,18 @@ export function generateCapitalCallSummary(call: any, agreement: any): string {
 }
 
 export function validateCompliance(summary: string): boolean {
-  return summary.includes('Capital Call') && summary.includes('$');
+  return summary.includes("Capital Call") && summary.includes("$");
 }
 
-export function sendNotifications(investors: any[], summary: string, log: any[]): void {
-  investors.forEach(inv => {
+export function sendNotifications(
+  investors: any[],
+  summary: string,
+  log: any[],
+): void {
+  investors.forEach((inv) => {
     log.push({
       investorId: inv.id,
-      status: 'sent',
+      status: "sent",
       timestamp: new Date().toISOString(),
       message: summary,
     });

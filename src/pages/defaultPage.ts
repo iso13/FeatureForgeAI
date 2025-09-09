@@ -10,8 +10,8 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import type { Page } from 'playwright';
-import { BasePage } from './BasePage';
+import type { Page } from "playwright";
+import { BasePage } from "./BasePage";
 
 export class DefaultPage extends BasePage {
   constructor(page: Page) {
@@ -19,6 +19,6 @@ export class DefaultPage extends BasePage {
   }
 
   getUrl(): string {
-    return 'about:blank';
+    return "about:blank";
   }
 }

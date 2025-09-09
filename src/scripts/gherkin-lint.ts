@@ -12,10 +12,10 @@
 
 // scripts/gherkin-lint.ts
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { parseGherkin } from './gherkinParser.js'; // make sure this uses .js in ESM builds
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { parseGherkin } from "./gherkinParser.js"; // make sure this uses .js in ESM builds
 
 // Fix for __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -29,7 +29,7 @@ function findFeatureFiles(dir: string, found: string[] = []): string[] {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       findFeatureFiles(fullPath, found);
-    } else if (entry.isFile() && fullPath.endsWith('.feature')) {
+    } else if (entry.isFile() && fullPath.endsWith(".feature")) {
       found.push(fullPath);
     }
   }
@@ -39,11 +39,11 @@ function findFeatureFiles(dir: string, found: string[] = []): string[] {
 
 // Main logic for linting
 export async function runLint() {
-  const featuresDir = path.join(__dirname, '../features'); // use correct relative path
+  const featuresDir = path.join(__dirname, "../features"); // use correct relative path
   const featureFiles = findFeatureFiles(featuresDir);
 
   for (const file of featureFiles) {
-    const content = fs.readFileSync(file, 'utf-8');
+    const content = fs.readFileSync(file, "utf-8");
     const errors = parseGherkin(content); // your custom linting logic
     const relativePath = path.relative(featuresDir, file);
     if (errors.length > 0) {
@@ -57,8 +57,8 @@ export async function runLint() {
 
 // Execute if run directly (e.g., `tsx scripts/gherkin-lint.ts`)
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runLint().catch(err => {
-    console.error('Gherkin lint failed:', err);
+  runLint().catch((err) => {
+    console.error("Gherkin lint failed:", err);
     process.exit(1);
   });
 }
