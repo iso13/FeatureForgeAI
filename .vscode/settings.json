@@ -1,11 +1,13 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
-  "cucumberautocomplete.steps": [
+  
+  "cucumber.features": [
+    "src/features/**/*.feature"
+  ],
+  "cucumber.glue": [
     "src/steps/**/*.ts"
   ],
-  "cucumberautocomplete.syncfeatures": "src/features/**/*.feature",
-  "cucumberautocomplete.strictGherkinCompletion": true,
-  "cucumberautocomplete.smartSnippets": true,
+  "cucumber.parameterTypes": [],
   
   "eslint.rules.customizations": [
     {
