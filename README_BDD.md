@@ -36,7 +36,7 @@ Describe **what** the system should do, not **how** the user interacts with it. 
 
 | Element              | Guideline                                                                 |
 |----------------------|---------------------------------------------------------------------------|
-| **Title**            | Use `Verb Noun` format (e.g., `Bind Homeowners Policy`)                   |
+| **Feature Title**            | Use `Verb Noun` format (e.g., `Bind Homeowners Policy`)                   |
 | **Feature Tag**      | Tag each Feature with `@<featureTitle>` in **lowerCamelCase**             |
 | **@wip Tag**         | Use `@wip` for any Feature or Scenario not ready for CI/CD                |
 | **Background**       | Use only for shared setup steps across all Scenarios                      |
