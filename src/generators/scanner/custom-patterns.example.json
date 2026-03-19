@@ -1,0 +1,139 @@
+[
+  {
+    "name": "Policy Reinstatement",
+    "description": "Reinstate a previously cancelled policy",
+    "category": "Policy Lifecycle",
+    "endpointPatterns": [
+      {
+        "order": 1,
+        "pathPattern": "GET /policies/{policyId}",
+        "method": "GET",
+        "description": "Retrieve the cancelled policy",
+        "outputProvides": ["policyId", "policyNumber", "status"]
+      },
+      {
+        "order": 2,
+        "pathPattern": "POST /policies/{policyId}/reinstate",
+        "method": "POST",
+        "description": "Create a reinstatement job",
+        "outputProvides": ["jobId", "reinstatementJobId"],
+        "requiresFrom": "policyId"
+      },
+      {
+        "order": 3,
+        "pathPattern": ".*\\/jobs\\/{jobId}\\/quote",
+        "method": "POST",
+        "description": "Quote the reinstatement",
+        "outputProvides": ["reinstatementPremium"],
+        "requiresFrom": "jobId"
+      },
+      {
+        "order": 4,
+        "pathPattern": ".*\\/jobs\\/{jobId}\\/bind-and-issue",
+        "method": "POST",
+        "description": "Bind and issue the reinstatement",
+        "outputProvides": [],
+        "requiresFrom": "jobId"
+      }
+    ],
+    "stateTransitions": [
+      {
+        "fromState": "Cancelled",
+        "toState": "ReinstatementInProgress",
+        "trigger": "POST /policies/{policyId}/reinstate",
+        "conditions": ["Policy was previously cancelled", "Reinstatement window has not expired"]
+      },
+      {
+        "fromState": "ReinstatementInProgress",
+        "toState": "InForce",
+        "trigger": "POST /jobs/{jobId}/bind-and-issue",
+        "conditions": ["Reinstatement quoted and approved"]
+      }
+    ],
+    "crossCenterEffects": [
+      "BillingCenter: Account reactivated with updated premium",
+      "BillingCenter: Previous refund reversed if applicable"
+    ]
+  },
+  {
+    "name": "Rewrite Policy",
+    "description": "Rewrite a policy with new terms and conditions",
+    "category": "Policy Lifecycle",
+    "endpointPatterns": [
+      {
+        "order": 1,
+        "pathPattern": "GET /policies/{policyId}",
+        "method": "GET",
+        "description": "Retrieve the existing policy",
+        "outputProvides": ["policyId", "policyNumber"]
+      },
+      {
+        "order": 2,
+        "pathPattern": "POST /policies/{policyId}/rewrite",
+        "method": "POST",
+        "description": "Create a rewrite job",
+        "outputProvides": ["jobId", "rewriteJobId"],
+        "requiresFrom": "policyId"
+      },
+      {
+        "order": 3,
+        "pathPattern": ".*\\/jobs\\/{jobId}\\/.*coverages",
+        "method": "POST",
+        "description": "Add new coverages to the rewritten policy",
+        "outputProvides": ["coverageId"],
+        "requiresFrom": "jobId"
+      },
+      {
+        "order": 4,
+        "pathPattern": ".*\\/jobs\\/{jobId}\\/quote",
+        "method": "POST",
+        "description": "Quote the rewrite",
+        "outputProvides": ["rewritePremium"],
+        "requiresFrom": "jobId"
+      },
+      {
+        "order": 5,
+        "pathPattern": ".*\\/jobs\\/{jobId}\\/bind-and-issue",
+        "method": "POST",
+        "description": "Bind and issue the rewrite",
+        "outputProvides": ["newPolicyNumber"],
+        "requiresFrom": "jobId"
+      }
+    ],
+    "stateTransitions": [
+      {
+        "fromState": "InForce",
+        "toState": "RewriteInProgress",
+        "trigger": "POST /policies/{policyId}/rewrite",
+        "conditions": ["Policy is active"]
+      },
+      {
+        "fromState": "RewriteInProgress",
+        "toState": "Rewritten",
+        "trigger": "POST /jobs/{jobId}/bind-and-issue",
+        "conditions": ["Rewrite quoted and approved", "UW approval obtained if required"]
+      }
+    ],
+    "crossCenterEffects": [
+      "BillingCenter: Original billing account closed, new account created",
+      "BillingCenter: Premium adjustments applied"
+    ]
+  },
+  {
+    "_comment": "Add your organization-specific patterns below",
+    "name": "Custom LOB Submission",
+    "description": "Template for adding line-of-business-specific submission flows",
+    "category": "Custom",
+    "endpointPatterns": [
+      {
+        "order": 1,
+        "pathPattern": "POST /submissions",
+        "method": "POST",
+        "description": "Create submission for your custom LOB",
+        "outputProvides": ["jobId"]
+      }
+    ],
+    "stateTransitions": [],
+    "crossCenterEffects": []
+  }
+]

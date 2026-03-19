@@ -50,7 +50,8 @@
       "@examples/*":   ["src/examples/*"],
       "@support/*":    ["src/core/support/*"],
       "@steps/*":      ["src/core/steps/*"],
-      "@pages/*":      ["src/core/pages/*"]
+      "@pages/*":      ["src/core/pages/*"],
+      "@scanner/*":    ["src/generators/scanner/*"]
     },
 
     // Include custom type declarations
