@@ -1,210 +1,167 @@
-![BDD](docs/images/BDD.jpg)
-# FeatueForge AI
+# FeatureForgeAI
 
-# Cucumber Automation Framework 🚀
+AI-powered BDD test generation and execution platform built on Cucumber, Playwright, and TypeScript.
 
-This repository hosts a robust and scalable **Cucumber Automation** framework designed to facilitate Behavior-Driven Development (BDD) practices for end-to-end testing. It seamlessly integrates **Cucumber** and **Playwright** in a TypeScript environment to deliver automated test scripts that are maintainable, efficient, and aligned with modern development practices.
+## What It Does
 
----
+FeatureForgeAI generates production-ready BDD feature files and step definitions through four intelligent pathways:
 
-## Key Features 🌟
-- **BDD-Driven Design**: Write Features, Scenarios and Steps in natural language using the Gherkin syntax, promoting collaboration between technical and non-technical stakeholders.
-- **Playwright Integration**: Leverage Playwright’s fast, reliable, and capable browser automation for comprehensive test coverage across multiple platforms and devices.
-- **TypeScript Support**: Ensure type safety and robust coding practices with a fully TypeScript-based implementation.
-- **Flexible Tagging System**: Execute tests selectively using tags to support modular and targeted test execution.
-- **Dynamic Reporting**: Generate detailed test execution reports in both JSON and HTML formats for better visibility into test results.
-- **Custom Helpers**: Extend functionality with modular utilities such as `apiHelper` for API testing or `performance/loadTest` for performance testing.
-- **Cross-Browser Testing**: Execute tests across multiple browsers (Chromium, Firefox, WebKit) and configurations with ease.
-- **CI/CD Ready**: Seamlessly integrate with CI/CD pipelines for automated and continuous testing.
-
----
-
-## Use Cases 🎯
-- **AI Feature**: Leverage AI to automatically generate Cucumber feature files, streamlining the creation of BDD scenarios and enhancing productivity.
-- **End-to-End Testing**: Validate the complete user journey across web applications.
-- **API Testing**: Automate API validations with reusable step definitions and dynamic payload management.
-- **Performance Testing**: Incorporated k6 and Cucumber for running performance tests.
-- **Mobile and Desktop Testing**: Extend capabilities to test across mobile devices and desktop browsers.
-- **Accessibility (a11y) Testing**: Ensure digital accessibility compliance and create inclusive user experiences.
-- **AI/ML Support**: Validate and test AI/ML models with advanced capabilities and integrations.
-
----
-
-## Project Structure 📂
-- **`src/features/`**: Contains feature files written in Gherkin syntax.
-- **`src/steps/`**: Houses step definition files for implementing test steps.
-- **`src/support/`**: Includes utilities, helpers, and configuration files for extended functionality.
-- **`reports/`**: Stores test execution reports, both JSON and HTML formats.
-- **`performance/`**: Contains performance testing scripts, such as `loadTest.js` for k6.
-
----
-
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [Running Tests](#running-tests)
-- [Project Structure](#project-structure)
-- [Writing Tests](#writing-tests)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-- [Additional Resources](#additional-resources)
+- **LLM Generator** - Generate features from a title and user story using OpenAI or Ollama
+- **API Flow Engine** - Scan OpenAPI specs, discover endpoint chains, generate flow-aware BDD tests
+- **DOM Generator** - Analyze a live web page and generate UI scenarios from real elements
+- **Scaffolder** - Generate step definitions from existing feature files
 
 ## Prerequisites
 
-- [Node.js (>= 20.x)](https://nodejs.org/)
-- [npm (>= 10.x)](https://www.npmjs.com/)
+- Node.js >= 22.0.0
+- npm >= 10.0.0
+- OpenAI API key (for LLM generator)
+- Playwright browsers: `npx playwright install`
 
-## Setup
+## Quick Start
 
-1. **Clone the repository:**
+```bash
+git clone <repo>
+cd FeatureForgeAI
+npm install
+npx playwright install
+cp .env.example .env
+npm run cucumber
+```
 
-   ```sh
-   git clone https://github.com/iso13/FeatureForgeAI.git
-   cd FeatureForgeAI
-   ```
-
-2. **Install dependencies:**
-
-   ```sh
-   npm install
-   ```
-
-3. **Install Playwright browsers:**
-
-   ```sh
-   npx playwright install
-   ```
-
-4. **Setup reports:**
-
-   ```sh
-   npm run prepReport
-   ```
-
-5. **Optional Install for Performance Testing k6 Globally: Install k6 globally on your system to use it as a CLI:**
-
-   **Mac:**
-
-   https://brew.sh/
-
-   ```zsh
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-
-   https://grafana.com/docs/k6/latest/set-up/install-k6/
-
-   ```zsh
-   brew install k6
-   ```
-
-   **Debian/Ubuntu Linux:**
-
-   https://grafana.com/docs/k6/latest/set-up/install-k6/
-
-   ```bash
-   sudo gpg -k
-   sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-   echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-   sudo apt-get update
-   ```
-
-   ```bash
-   sudo apt-get install k6
-   ```
-
-   **Windows:**
-
-   https://chocolatey.org/install
-
-   ```powershell
-   Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-   ```
-
-   https://grafana.com/docs/k6/latest/set-up/install-k6/
-
-   ```powershell
-   choco install k6
-   ```
-
-## Running Features
-
-1. **Run all features except features and or scenarios with @wip tag, work in progress:** (If this passes, you are all set)
-
-   ```sh
-   npm run cucumber -- --tags "not @wip"
-   ```
-
-2. **Run all tests:**
-
-   ```sh
-   npm run cucumber
-   ```
-
-3. **Run a specific feature by tag:**
-
-   ```sh
-   npm run cucumber -- --tags "@tagName"
-   ```
+Add your `OPENAI_API_KEY` to `.env` before running generators.
 
 ## Project Structure
 
-- `features/`: Contains the feature files written in Gherkin syntax.
-- `steps/`: Contains the step definitions for the feature files.
-- `support/`: Contains support files and hooks.
+```
+src/
+├── core/          # Platform engine - world, hooks, pages, types, utils
+├── generators/    # LLM, DOM, scaffolder, PDF, agentic generators
+├── plugins/       # AI, telemetry, compliance, simulators, performance
+├── tools/         # Reporting, linting, utilities
+└── examples/      # Demo features, steps, data, and assets
+```
 
+## Generators
 
-## Writing Tests
+### LLM Feature Generator
 
-1. **Create a feature file in the `features/` directory:**
+```bash
+npm run generate:featureOpenAI
+```
 
-   ```gherkin
-   @exampleFeature
-   Feature: Example feature
+Prompts for a feature title and user story, generates a `.feature` file and step definitions using OpenAI.
 
-     Scenario: Example scenario
-       Given I open the homepage
-       Then I should see the title "Example Domain"
-   ```
+### DOM Generator
 
-2. **Create step definitions in the `steps/` directory:**
+```bash
+npm run generate:dom
+```
 
-   ```typescript
-   import { Given, Then } from 'cucumber';
-   import { expect } from '@playwright/test';
+Enter a URL and FeatureForgeAI scans the live page, analyzes interactive elements, and generates BDD scenarios.
 
-   Given('I open the homepage', async function () {
-     await page.goto('https://example.com');
-   });
+### Step Scaffolder
 
-   Then('I should see the title {string}', async function (title) {
-     const pageTitle = await page.title();
-     expect(pageTitle).toBe(title);
-   });
-   ```
-## Troubleshooting
+```bash
+npm run scaffold:steps
+```
 
-- **Error: `npx playwright install` fails.**  
-  Ensure that you are running a supported Node.js version (`>= 20.x`).
+Reads existing `.feature` files and generates matching step definition stubs.
 
-- **Tests are not running as expected.**  
-  Make sure all dependencies are installed by running:
-  
-  ```sh
-  npm install
-  ```
+### PDF to Feature
 
-## Contributing
+```bash
+npm run feature:from-pdf
+```
 
-Contributions are welcome! Please follow the [Contributing Guidelines](CONTRIBUTING.md) for submitting issues and pull requests.
+Extracts requirements from a PDF document and generates BDD feature files.
+
+## Running Tests
+
+```bash
+# Run all tests
+npm run cucumber
+
+# Run specific tag
+npm run cucumber -- --tags '@ai'
+
+# Run with environment
+npm run cucumber:dev
+npm run cucumber:staging
+
+# Dry run - validate without executing
+npm run cucumber -- --dry-run
+
+# Typecheck
+npm run typecheck
+```
+
+## Environment Variables
+
+| Variable        | Description                                      |
+|-----------------|--------------------------------------------------|
+| `OPENAI_API_KEY`| Required for LLM generator                      |
+| `ENV`           | Target environment: dev, staging, prod           |
+| `TAGS`          | Cucumber tag filter                              |
+| `PARALLEL`      | Number of parallel workers                       |
+| `RETRY`         | Number of retries on failure                     |
+| `FEATURE_PATH`  | Override default feature file path               |
+| `STEP_PATH`     | Override default step definition path            |
+
+## Example Features
+
+The `src/examples/` directory contains ready-to-run demonstrations:
+
+- **AI Testing** - RAG validation, fairness auditing, agentic workflows
+- **Accessibility** - WCAG compliance using axe-core
+- **HIPAA Compliance** - Audit trail and data access scenarios
+- **Performance** - Load testing integration
+- **Human-in-the-Loop** - Device simulation and monitoring
+- **Stock Prediction** - ML model validation
+
+## Architecture
+
+### Core (`src/core/`)
+The platform engine. Contains `world.ts`, `hooks.ts`, base page objects, type definitions, and shared utilities. This is loaded directly by Cucumber on every run.
+
+### Generators (`src/generators/`)
+The four test generation pathways: LLM-based, DOM-based, scaffolder, PDF extraction, and agentic generation. Each generator is an independent module.
+
+### Plugins (`src/plugins/`)
+Optional capabilities: AI/RAG integration, OpenTelemetry tracing, Prometheus metrics, device simulation, compliance regulation tags, and performance tooling.
+
+### Tools (`src/tools/`)
+Development utilities: Gherkin linter, report archiving, and path utilities.
+
+### Examples (`src/examples/`)
+Demonstration features, step definitions, test data, and ML model assets. These are not customer implementations - they demonstrate platform capabilities.
+
+## Adding a New Customer Implementation
+
+Create a new directory under `src/implementations/`:
+
+```
+src/implementations/
+└── customer-name/
+    ├── features/
+    ├── steps/
+    ├── pages/
+    ├── data/
+    └── config/
+```
+
+Point Cucumber at it using environment variables:
+
+```bash
+FEATURE_PATH=src/implementations/customer-name/features/**/*.feature \
+STEP_PATH=src/implementations/customer-name/steps/**/*.steps.ts \
+npm run cucumber
+```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Business Source License 1.1 - see `LICENSE.txt`
 
-## Additional Resources
+Non-production use permitted. Converts to MIT on January 1, 2029.
 
-- [Cucumber Documentation](https://cucumber.io/docs/guides/10-minute-tutorial/)
-- [Playwright Documentation](https://playwright.dev/docs/intro)
-
+Commercial licensing: davidtran@featuregen.ai
