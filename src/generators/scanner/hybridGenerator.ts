@@ -129,7 +129,7 @@ export function buildFlowContext(
     .map((step: FlowStep, i: number) => {
       const lines = [
         `Step ${i + 1}: ${step.name}`,
-        `  Method: ${step.method.toUpperCase()} ${step.endpoint}`,
+        `  Method: ${(step.method ?? "GET").toUpperCase()} ${step.endpoint ?? ""}`,
       ];
       if (step.requiredFields?.length) {
         lines.push(`  Required fields: ${step.requiredFields.join(", ")}`);
@@ -219,7 +219,7 @@ export class HybridGenerator {
     }
 
     const flowContext = buildFlowContext(flow, flowGraph);
-    const tags = ["@generated", `@${flow.center.toLowerCase()}`, ...(request.tags ?? [])].join(" ");
+    const tags = ["@generated", `@${(flow.center ?? "generated").toLowerCase()}`, ...(request.tags ?? [])].join(" ");
 
     const systemPrompt = this.buildSystemPrompt();
     const featurePrompt = this.buildFeaturePrompt(request, flowContext, tags);
@@ -312,7 +312,7 @@ Generate exactly ${request.scenarioCount} scenarios. Use declarative business la
     flow: BusinessFlow,
   ): string {
     const endpointList = flow.steps
-      .map((s: FlowStep) => `  // ${s.method.toUpperCase()} ${s.endpoint}`)
+      .map((s: FlowStep) => `  // ${(s.method ?? "GET").toUpperCase()} ${s.endpoint ?? ""}`)
       .join("\n");
 
     return `Generate Cucumber TypeScript step definitions for the feature: "${request.featureTitle}"

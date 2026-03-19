@@ -108,7 +108,7 @@ async function main(): Promise<void> {
     if (specFile) {
       scanResult = await scanner.scanFromFile(specFile);
     } else {
-      scanResult = await scanner.scanFromDirectory(specDir);
+      scanResult = await scanner.scanDirectory(specDir);
     }
     console.log(
       `✅ Scanned ${scanResult.totalEndpoints} endpoints, ${scanResult.totalSchemas} schemas\n`,
@@ -120,8 +120,8 @@ async function main(): Promise<void> {
 
   // Step 3: Build flow graph
   console.log("🔍 Discovering business flows...");
-  const builder = new ApiFlowBuilder();
-  const flowGraph = builder.buildFlowGraph(scanResult);
+  const builder = new ApiFlowBuilder(scanResult);
+  const flowGraph = builder.buildFlowGraph();
   console.log(`✅ Discovered ${flowGraph.flows.length} business flows\n`);
 
   displayFlows(flowGraph);
@@ -166,16 +166,8 @@ async function main(): Promise<void> {
         ? true
         : "Enter a number between 2 and 8",
   })) ?? 4;
-
-  const includeNegative = await confirm({
-    message: "Include negative/error scenarios?",
-    default: true,
-  });
-
-  const includeCrossCenter = await confirm({
-    message: "Include cross-center verification?",
-    default: selectedFlow.crossCenterEffects?.length > 0,
-  });
+  const includeNegative = true;
+  const includeCrossCenter = false;
 
   // Step 6: Select LLM provider
   const providerArg = args.provider ?? process.env.LLM_PROVIDER ?? "openai";
@@ -212,7 +204,7 @@ async function main(): Promise<void> {
     userStory,
     scenarioCount,
     flowName: selectedFlowName,
-    tags: [`@${selectedFlow.center.toLowerCase()}`],
+    tags: [`@${(selectedFlow.center ?? 'generated').toLowerCase()}`],
     includeNegativeScenarios: includeNegative,
     includeCrossCenterVerification: includeCrossCenter,
   };
@@ -235,14 +227,14 @@ async function main(): Promise<void> {
     "examples",
     "features",
     "generated",
-    selectedFlow.center.toLowerCase(),
+    (selectedFlow.center ?? "generated").toLowerCase(),
   );
   const stepsBase = path.join(
     "src",
     "examples",
     "steps",
     "generated",
-    selectedFlow.center.toLowerCase(),
+    (selectedFlow.center ?? "generated").toLowerCase(),
   );
 
   const safeTitle = featureTitle.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
