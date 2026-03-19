@@ -42,11 +42,15 @@
     // Path aliases
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@scripts/*": ["src/scripts/*"],
-      "@features/*": ["src/features/*"],
-      "@steps/*": ["src/steps/*"],
-      "@support/*": ["src/support/*"]
+      "@/*":           ["src/*"],
+      "@core/*":       ["src/core/*"],
+      "@generators/*": ["src/generators/*"],
+      "@plugins/*":    ["src/plugins/*"],
+      "@tools/*":      ["src/tools/*"],
+      "@examples/*":   ["src/examples/*"],
+      "@support/*":    ["src/core/support/*"],
+      "@steps/*":      ["src/core/steps/*"],
+      "@pages/*":      ["src/core/pages/*"]
     },
 
     // Include custom type declarations
