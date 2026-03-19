@@ -13,7 +13,7 @@
 import { generateGherkinPrompt } from "../utils/gherkinPrompt";
 import { generateStepDefinitions } from "../utils/stepWriter";
 import { enforceDeclarativeSteps } from "../utils/enforceDeclarative";
-import { writeFeatureFile, writeStepFile } from "../helpers/filewriter";
+import { writeFeatureFile, writeStepFile } from "../utils/filewriter";
 import path from "path";
 
 export async function generateAgenticFeature(goal: string) {

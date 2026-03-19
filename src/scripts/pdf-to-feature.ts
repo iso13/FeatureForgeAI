@@ -117,11 +117,7 @@ async function extractTextFromPDF(filePath: string): Promise<string> {
     console.log(`📖 Extracting text from: ${path.basename(filePath)}`);
 
     const dataBuffer = await fs.readFile(filePath);
-    const pdfData = await pdf(dataBuffer, {
-      // Enhanced PDF parsing options
-      max: 0, // Parse all pages
-      version: "v2.0.550", // Specify PDF.js version for consistency
-    });
+    const pdfData = await pdf(dataBuffer); // options removed - pdf-parse only accepts buffer
 
     if (!pdfData.text || pdfData.text.trim().length === 0) {
       throw new PDFProcessingError("PDF contains no extractable text content");

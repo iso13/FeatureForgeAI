@@ -12,7 +12,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import { DOMGenerator } from "../utils/dom-generator/index.js";
-import inquirer from "inquirer";
+import { input, confirm, number as numberPrompt } from "@inquirer/prompts";
 import fs from "fs-extra";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -112,46 +112,28 @@ async function run() {
     );
     featureName = argFeature || "";
   } else {
-    // Fixed inquirer prompt with proper typing
-    const answers = (await inquirer.prompt([
-      {
-        type: "input",
-        name: "url",
-        message: "Enter the full URL of the page to scan:",
-        validate: (input: string) =>
-          input.startsWith("http") ? true : "Enter a valid URL",
-      },
-      {
-        type: "input",
-        name: "featureName",
-        message:
-          "Enter the Feature title (or press Enter for auto-generation):",
-        default: "",
-      },
-      {
-        type: "confirm",
-        name: "generateSteps",
-        message: "Generate step definitions file?",
-        default: true,
-      },
-      {
-        type: "confirm",
-        name: "requiresLogin",
-        message: "Does this page require login?",
-        default: false,
-      },
-      {
-        type: "number",
-        name: "scenarioCount",
-        message: "How many scenarios to generate? (2-10):",
-        default: 5,
-        validate: (val: number) =>
-          val >= 2 && val <= 10 ? true : "Enter a number between 2 and 10",
-      },
-    ])) as PromptAnswers;
-
-    ({ url, featureName, generateSteps, requiresLogin, scenarioCount } =
-      answers);
+    // Inquirer v12 individual prompts
+    url = await input({
+      message: "Enter the full URL of the page to scan:",
+      validate: (val: string) => val.startsWith("http") ? true : "Enter a valid URL",
+    });
+    featureName = await input({
+      message: "Enter the Feature title (or press Enter for auto-generation):",
+      default: "",
+    });
+    generateSteps = await confirm({
+      message: "Generate step definitions file?",
+      default: true,
+    });
+    requiresLogin = await confirm({
+      message: "Does this page require login?",
+      default: false,
+    });
+    scenarioCount = (await numberPrompt({
+      message: "How many scenarios to generate? (2-10):",
+      default: 5,
+      validate: (val: number | undefined) => val !== undefined && val >= 2 && val <= 10 ? true : "Enter a number between 2 and 10",
+    })) ?? 5;
   }
 
   console.log("🚀 Starting DOM analysis...");
