@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import { execSync } from "child_process";
-import { generateAgenticFeature } from "../services/agenticGenerator";
+import { generateAgenticFeature } from "../agentic/agenticGenerator";
 
 /**
  * Accepts a user goal and executes the agentic test loop:
