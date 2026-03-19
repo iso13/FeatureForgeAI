@@ -1,10 +1,10 @@
 {
-  "name": "cucumber-playwright",
+  "name": "featureforge-ai",
   "version": "1.0.0",
   "main": "index.js",
   "author": "David Tran",
-  "license": "MIT",
-  "description": "Cucumber Automation Framework",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "description": "AI-powered BDD test generation and execution platform",
   "type": "module",
   "scripts": {
     "lint": "npm run lint:ts && npm run lint:gherkin",
@@ -23,6 +23,7 @@
     "generate:featureOpenAI": "tsx src/scripts/featureGeneratorOpenAI.ts",
     "feature:scaffold": "tsx src/scripts/automationScaffolder.ts",
     "build": "npx tsc",
+    "typecheck": "npx tsc --noEmit",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "codegen": "playwright codegen",
     "report:generate": "npx multiple-cucumber-html-reporter --reportDir reports/html --jsonDir reports/cucumber --reportName 'Consolidated Test Report' --displayDuration true",
@@ -41,7 +42,7 @@
     "scaffold:steps": "tsx src/scripts/scaffolder.ts"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",
