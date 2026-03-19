@@ -17,9 +17,12 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { ApiSpecScanner, ScanResult } from "./apiSpecScanner";
-import { ApiFlowBuilder, FlowGraph } from "./apiFlowBuilder";
-import { FlowAwareFeatureGenerator, GeneratedFeature, GenerationConfig } from "./flowAwareFeatureGenerator";
+import { ApiSpecScanner } from "./apiSpecScanner.js";
+import type { ScanResult } from "./apiSpecScanner.js";
+import { ApiFlowBuilder } from "./apiFlowBuilder.js";
+import type { FlowGraph } from "./apiFlowBuilder.js";
+import { FlowAwareFeatureGenerator } from "./flowAwareFeatureGenerator.js";
+import type { GeneratedFeature, GenerationConfig } from "./flowAwareFeatureGenerator.js";
 
 // ============================================================================
 // Configuration

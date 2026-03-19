@@ -8,7 +8,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-export { ApiSpecScanner } from "./apiSpecScanner";
+export { ApiSpecScanner } from "./apiSpecScanner.js";
 export type {
   ApiEndpoint,
   ApiParameter,
@@ -19,9 +19,9 @@ export type {
   ScanResult,
   SchemaDefinition,
   SchemaProperty,
-} from "./apiSpecScanner";
+} from "./apiSpecScanner.js";
 
-export { ApiFlowBuilder } from "./apiFlowBuilder";
+export { ApiFlowBuilder } from "./apiFlowBuilder.js";
 export type {
   BusinessFlow,
   CrossCenterDependency,
@@ -29,16 +29,16 @@ export type {
   FlowGraph,
   FlowStep,
   StateTransition,
-} from "./apiFlowBuilder";
+} from "./apiFlowBuilder.js";
 
-export { FlowAwareFeatureGenerator } from "./flowAwareFeatureGenerator";
+export { FlowAwareFeatureGenerator } from "./flowAwareFeatureGenerator.js";
 export type {
   GeneratedFeature,
   FeatureMetadata,
   GenerationConfig,
-} from "./flowAwareFeatureGenerator";
+} from "./flowAwareFeatureGenerator.js";
 
-export { ApiFlowEngine } from "./cli";
+export { ApiFlowEngine } from "./cli.js";
 
 export { HybridGenerator, OpenAIClient, OllamaClient, buildFlowContext } from "./hybridGenerator.js";
 export type { HybridGenerationRequest, HybridGenerationResult, LLMClient } from "./hybridGenerator.js";

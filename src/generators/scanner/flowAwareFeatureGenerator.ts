@@ -11,19 +11,19 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import {
+import type {
   ApiEndpoint,
   ApiSpec,
   ScanResult,
-} from "./apiSpecScanner";
+} from "./apiSpecScanner.js";
 
-import {
+import type {
   BusinessFlow,
   FlowGraph,
   FlowStep,
   FieldMapping,
   CrossCenterDependency,
-} from "./apiFlowBuilder";
+} from "./apiFlowBuilder.js";
 
 // ============================================================================
 // Types

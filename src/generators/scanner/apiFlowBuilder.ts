@@ -11,12 +11,12 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import {
+import type {
   ApiSpec,
   ApiEndpoint,
   ScanResult,
   SchemaDefinition,
-} from "./apiSpecScanner";
+} from "./apiSpecScanner.js";
 
 // ============================================================================
 // Types & Interfaces
