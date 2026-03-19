@@ -15,8 +15,8 @@
 import weaviate from "weaviate-ts-client";
 import type { WeaviateClient } from "weaviate-ts-client";
 import type { Span } from "@opentelemetry/api";
-import { withSpan } from "./traceHelper";
-import type { DocumentInput } from "./injectIdsIntoDocs";
+import { withSpan } from "../telemetry/traceHelper";
+import type { DocumentInput } from "../../core/utils/injectIdsIntoDocs";
 
 process.env.OPENAI_APIKEY ??= process.env.OPENAI_API_KEY;
 

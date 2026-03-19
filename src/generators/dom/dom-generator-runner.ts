@@ -11,7 +11,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { DOMGenerator } from "../utils/dom-generator/index.js";
+import { DOMGenerator } from "./index.js";
 import { input, confirm, number as numberPrompt } from "@inquirer/prompts";
 import fs from "fs-extra";
 import * as path from "path";

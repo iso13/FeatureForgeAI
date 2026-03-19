@@ -10,10 +10,10 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { generateGherkinPrompt } from "../utils/gherkinPrompt";
-import { generateStepDefinitions } from "../utils/stepWriter";
-import { enforceDeclarativeSteps } from "../utils/enforceDeclarative";
-import { writeFeatureFile, writeStepFile } from "../utils/filewriter";
+import { generateGherkinPrompt } from "../llm/gherkinPrompt";
+import { generateStepDefinitions } from "../scaffolder/stepWriter";
+import { enforceDeclarativeSteps } from "../../core/utils/enforceDeclarative";
+import { writeFeatureFile, writeStepFile } from "../../core/utils/filewriter";
 import path from "path";
 
 export async function generateAgenticFeature(goal: string) {

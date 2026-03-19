@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import express from "express";
-import { register } from "../support/metrics";
+import { register } from "../../core/support/metrics";
 
 const port = 9464;
 const METRICS_FLAG = "__cucumber_metrics_server_started__";

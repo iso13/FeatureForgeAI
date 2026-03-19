@@ -15,7 +15,7 @@ import { expect } from "@playwright/test";
 import * as tf from "@tensorflow/tfjs-node";
 import * as fs from "fs";
 import path from "path";
-import { getDirName } from "../../utils/dirname.js"; // ESM-safe __dirname
+import { getDirName } from "../../../core/utils/dirname.js"; // ESM-safe __dirname
 
 let model: tf.LayersModel;
 let predictions: { image: string; label: string }[] = [];

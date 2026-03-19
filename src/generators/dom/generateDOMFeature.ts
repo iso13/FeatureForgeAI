@@ -10,8 +10,8 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { DOMGenerator } from "../utils/dom-generator";
-import { enforceDeclarativeSteps } from "../utils/enforceDeclarative";
+import { DOMGenerator } from "./index";
+import { enforceDeclarativeSteps } from "../../core/utils/enforceDeclarative";
 import { writeFile } from "fs/promises";
 import { join } from "path";
 import inquirer from "inquirer";

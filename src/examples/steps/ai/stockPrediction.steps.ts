@@ -12,8 +12,8 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { StockPricePredictor } from "../../support/predictor/stockPricePredictor";
-import { parseCSV } from "../../utils/csvParser";
+import { StockPricePredictor } from "../../assets/predictor/stockPricePredictor";
+import { parseCSV } from "../../../core/utils/csvParser";
 import path from "path";
 
 let predictor: StockPricePredictor;

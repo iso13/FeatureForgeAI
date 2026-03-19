@@ -20,10 +20,10 @@ import {
   createSchemaIfNeeded,
   importDocuments,
   querySimilarDocs,
-} from "../../utils/weaviateClient";
-import { generateSummaryLLM } from "../../utils/llmClient";
-import { withSpan } from "../../utils/traceHelper";
-import { injectIdsIntoDocs } from "../../utils/injectIdsIntoDocs";
+} from "../../../plugins/ai/weaviateClient";
+import { generateSummaryLLM } from "../../../generators/llm/llmClient";
+import { withSpan } from "../../../plugins/telemetry/traceHelper";
+import { injectIdsIntoDocs } from "../../../core/utils/injectIdsIntoDocs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

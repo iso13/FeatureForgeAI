@@ -21,8 +21,8 @@ import type {
 } from "playwright";
 import type { Span } from "@opentelemetry/api";
 
-import { CapitalCallAgent } from "../ai/agentTester";
-import { RAGEngine } from "../ai/ragHelper";
+import { CapitalCallAgent } from "../../plugins/ai/agentTester";
+import { RAGEngine } from "../../plugins/ai/ragHelper";
 import { BasePage } from "../pages/BasePage";
 import { DefaultPage } from "../pages/defaultPage";
 

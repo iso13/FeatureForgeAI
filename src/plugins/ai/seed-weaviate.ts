@@ -17,7 +17,7 @@ import {
   getWeaviateClient,
   createSchemaIfNeeded,
   importDocuments,
-} from "../utils/weaviateClient";
+} from "./weaviateClient";
 
 // Load environment variables
 dotenv.config();

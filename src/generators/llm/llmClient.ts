@@ -14,7 +14,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import OpenAI from "openai";
-import { withSpan } from "./traceHelper";
+import { withSpan } from "../../plugins/telemetry/traceHelper";
 import type { Span } from "@opentelemetry/api";
 
 const apiKey = process.env.OPENAI_API_KEY;

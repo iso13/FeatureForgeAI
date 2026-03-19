@@ -10,7 +10,7 @@
 
 // SPDX-License-Identifier: BSL-1.1
 
-import { register } from "../support/metrics";
+import { register } from "../../core/support/metrics";
 import express from "express";
 
 const port = 9464;
