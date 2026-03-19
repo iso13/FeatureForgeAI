@@ -39,3 +39,6 @@ export type {
 } from "./flowAwareFeatureGenerator";
 
 export { ApiFlowEngine } from "./cli";
+
+export { HybridGenerator, OpenAIClient, OllamaClient, buildFlowContext } from "./hybridGenerator.js";
+export type { HybridGenerationRequest, HybridGenerationResult, LLMClient } from "./hybridGenerator.js";
