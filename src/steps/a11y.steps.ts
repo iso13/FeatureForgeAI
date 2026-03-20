@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import { Given, When, Then } from "@cucumber/cucumber";
-import type { CustomWorld } from "../../core/support/world";
+import type { CustomWorld } from "../core/support/world";
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect } from "@playwright/test";
 import { createHtmlReport } from "axe-html-reporter";

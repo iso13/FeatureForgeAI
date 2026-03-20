@@ -12,8 +12,8 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { withSpan } from "../../../plugins/telemetry/traceHelper";
-import type { CustomWorld } from "../../../core/support/world";
+import { withSpan } from "../../plugins/telemetry/traceHelper";
+import type { CustomWorld } from "../../core/support/world";
 import type { Span } from "@opentelemetry/api";
 
 // ✅ Bias-simulating ML model

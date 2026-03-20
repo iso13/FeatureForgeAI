@@ -12,9 +12,9 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "chai";
-import { RAGEngine } from "../../../plugins/ai/ragHelper";
-import type { Clause } from "../../../plugins/ai/ragHelper";
-import type { CustomWorld } from "../../../core/support/world";
+import { RAGEngine } from "../../plugins/ai/ragHelper";
+import type { Clause } from "../../plugins/ai/ragHelper";
+import type { CustomWorld } from "../../core/support/world";
 
 const clauseSet: Clause[] = [
   {

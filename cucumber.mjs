@@ -7,10 +7,10 @@ export default {
     'src/core/support/tracer.ts',
     'src/core/support/world.ts',
     'src/core/support/hooks.ts',
-    process.env.STEP_PATH || 'src/examples/steps/**/*.steps.ts'
+    process.env.STEP_PATH || 'src/steps/**/*.steps.ts'
   ],
 
-  paths: [process.env.FEATURE_PATH || 'src/examples/features/**/*.feature'],
+  paths: [process.env.FEATURE_PATH || 'src/features/**/*.feature'],
 
   format: [
     'progress',

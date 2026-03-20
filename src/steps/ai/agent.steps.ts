@@ -12,8 +12,8 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "chai";
-import { CapitalCallAgent } from "../../../plugins/ai/agentTester";
-import type { CustomWorld } from "../../../core/support/world";
+import { CapitalCallAgent } from "../../plugins/ai/agentTester";
+import type { CustomWorld } from "../../core/support/world";
 
 Given(
   "the AI agent has access to investor records and fund agreements",

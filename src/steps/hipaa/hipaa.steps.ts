@@ -12,7 +12,7 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import type { CustomWorld } from "../../../core/support/world";
+import type { CustomWorld } from "../../core/support/world";
 
 Given(
   "a user badge is scanned at the lab entry",
@@ -69,7 +69,7 @@ Then(
   "a physical security alert must be issued to compliance",
   async function (this: CustomWorld) {
     const alerts = await this.accessApi?.getSecurityAlerts();
-    const userAlerts = alerts?.filter((a) => a.userId === this.userId);
+    const userAlerts = alerts?.filter((a: any) => a.userId === this.userId);
     expect(userAlerts?.length).toBeGreaterThan(0);
   },
 );

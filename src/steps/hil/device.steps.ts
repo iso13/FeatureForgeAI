@@ -12,8 +12,8 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import { HeartRateSimulator } from "../../../plugins/simulators/device-simulator";
-import { logTelemetry } from "../../../plugins/telemetry/telemetry-exporter";
+import { HeartRateSimulator } from "../../plugins/simulators/device-simulator";
+import { logTelemetry } from "../../plugins/telemetry/telemetry-exporter";
 
 const device = new HeartRateSimulator();
 let currentStatus: string = "IDLE";

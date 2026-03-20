@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import { defineConfig } from '@playwright/test';
-import { environments } from './src/support/environments';
+import { environments } from './src/core/support/environments';
 
 // Determine the baseURL based on the environment variable ENV, default to 'qa' if not provided
 const envKey = process.env.ENV as keyof typeof environments ?? 'qa';

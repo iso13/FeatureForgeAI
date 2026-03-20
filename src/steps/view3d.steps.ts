@@ -12,7 +12,7 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import type { CustomWorld } from "../../core/support/world.js";
+import type { CustomWorld } from "../core/support/world";
 
 Given(
   "the user opens the model viewer page",

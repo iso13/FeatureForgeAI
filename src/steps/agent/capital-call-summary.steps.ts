@@ -12,12 +12,12 @@
 
 import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import type { CustomWorld } from "../../../core/support/world";
+import type { CustomWorld } from "../../core/support/world";
 
 Given(
   "investor records and fund documents are available",
   async function (this: CustomWorld) {
-    this.agent = new (await import("../../ai/agentTester")).CapitalCallAgent();
+    this.agent = new (await import("../../plugins/ai/agentTester")).CapitalCallAgent();
     this.agent.setContext({
       investorRecordsAvailable: true,
       fundDocumentsAvailable: true,

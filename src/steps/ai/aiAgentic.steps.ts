@@ -14,15 +14,15 @@ import { Given, When, Then } from "@cucumber/cucumber";
 import { expect } from "chai";
 import fs from "fs";
 import path from "path";
-import type { CustomWorld } from "../../../core/support/world";
+import type { CustomWorld } from "../../core/support/world";
 import {
   generateCapitalCallSummary,
   validateCompliance,
   sendNotifications,
   retrySend,
-} from "../../../plugins/ai/agenticCapitalCallHelper";
-import { withSpan } from "../../../plugins/telemetry/traceHelper";
-import { getDirName } from "../../../core/utils/dirname.js";
+} from "../../plugins/ai/agenticCapitalCallHelper";
+import { withSpan } from "../../plugins/telemetry/traceHelper";
+import { getDirName } from "../../core/utils/dirname.js";
 
 Given(
   "the AI can see investor records and fund agreements",

@@ -15,15 +15,15 @@ import { expect } from "chai";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { CustomWorld } from "../../support/world";
+import type { CustomWorld } from "../../core/support/world";
 import {
   createSchemaIfNeeded,
   importDocuments,
   querySimilarDocs,
-} from "../../../plugins/ai/weaviateClient";
-import { generateSummaryLLM } from "../../../generators/llm/llmClient";
-import { withSpan } from "../../../plugins/telemetry/traceHelper";
-import { injectIdsIntoDocs } from "../../../core/utils/injectIdsIntoDocs";
+} from "../../plugins/ai/weaviateClient";
+import { generateSummaryLLM } from "../../generators/llm/llmClient";
+import { withSpan } from "../../plugins/telemetry/traceHelper";
+import { injectIdsIntoDocs } from "../../core/utils/injectIdsIntoDocs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,7 +46,7 @@ Given(
         const filePath = path.join(__dirname, "../../data/internal_docs.json");
         const rawDocs = JSON.parse(fs.readFileSync(filePath, "utf-8"));
         const documents = injectIdsIntoDocs(rawDocs, "doc");
-        documents.forEach((doc) => {
+        documents.forEach((doc: any) => {
           console.log(`[injectIdsIntoDocs] Injected docId: ${doc.docId}`);
         });
         await importDocuments(documents, span);
@@ -69,13 +69,13 @@ When(
 
         console.log(
           "Retrieved Documents:",
-          this.retrievedDocs?.map((d) => ({
+          this.retrievedDocs?.map((d: any) => ({
             docId: d.docId,
             title: d.title,
           })) ?? "No documents found",
         );
 
-        const docs = this.retrievedDocs?.map((doc) => doc.body) ?? [];
+        const docs = this.retrievedDocs?.map((doc: any) => doc.body) ?? [];
         const summary = await generateSummaryLLM(docs, query, span);
         this.summary = summary;
         this.lastSummaryOutput = summary;
@@ -119,7 +119,7 @@ Then(
 
     const sentenceCount = this.summary
       .split(/[.!?]+/)
-      .filter((s) => s.trim().length > 0).length;
+      .filter((s: string) => s.trim().length > 0).length;
     expect(sentenceCount).to.be.at.most(maxSentences);
   },
 );
@@ -159,7 +159,7 @@ Then(
 
     const keywordLower = keyword.toLowerCase();
     const found = this.retrievedDocs.every(
-      (doc) =>
+      (doc: any) =>
         doc.title?.toLowerCase().includes(keywordLower) ||
         doc.body?.toLowerCase().includes(keywordLower),
     );

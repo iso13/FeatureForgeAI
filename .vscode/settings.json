@@ -5,9 +5,17 @@
     "src/features/**/*.feature"
   ],
   "cucumber.glue": [
-    "src/steps/**/*.ts"
+    "src/steps/**/*.ts",
+    "src/plugins/**/steps/**/*.ts"
   ],
   "cucumber.parameterTypes": [],
+
+  "cucumberautocomplete.steps": [
+    "src/steps/**/*.ts",
+    "src/plugins/**/steps/**/*.ts"
+  ],
+  "cucumberautocomplete.syncfeatures": "src/features/**/*.feature",
+  "cucumberautocomplete.strictGherkinCompletion": true,
   
   "eslint.rules.customizations": [
     {

@@ -6,7 +6,7 @@
 
 import { Given, When, Then } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
-import type { CustomWorld } from '../support/world';
+import type { CustomWorld } from '../core/support/world';
 import type { DataTable } from '@cucumber/cucumber';
 
 // ---------------------------------------------------------------------------

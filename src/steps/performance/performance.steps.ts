@@ -14,7 +14,7 @@ import { Given, Then } from "@cucumber/cucumber";
 import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
-import { getDirName } from "../../../core/utils/dirname.js";
+import { getDirName } from "../../core/utils/dirname.js";
 
 let testResult: string;
 

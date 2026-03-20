@@ -14,7 +14,7 @@
 import fs from "fs";
 import path from "path";
 import type { Span } from "@opentelemetry/api";
-import { withSpan } from "./traceHelper";
+import { withSpan } from "../../plugins/telemetry/traceHelper";
 
 /**
  * Writes the given summary to a file in /reports/summaries directory.
