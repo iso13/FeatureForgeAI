@@ -39,7 +39,7 @@ function findFeatureFiles(dir: string, found: string[] = []): string[] {
 
 // Main logic for linting
 export async function runLint() {
-  const featuresDir = path.join(__dirname, "../features"); // use correct relative path
+  const featuresDir = path.join(__dirname, "../../features"); // use correct relative path
   const featureFiles = findFeatureFiles(featuresDir);
 
   for (const file of featureFiles) {
