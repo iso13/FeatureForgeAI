@@ -21,7 +21,7 @@ let model: tf.LayersModel;
 let predictions: { image: string; label: string }[] = [];
 
 const __dirname = getDirName(import.meta.url);
-const KNOWN_IMAGES_DIR = path.join(__dirname, "../../support/images/known"); // ✅ fixed path
+const KNOWN_IMAGES_DIR = path.join(__dirname, "../../plugins/ai/examples/assets/images/known"); // ✅ fixed path
 
 const EXPECTED_LABELS = [
   { image: "cat.jpg", label: "cat" },
@@ -31,7 +31,7 @@ const EXPECTED_LABELS = [
 // Load a pre-trained image classification model
 async function loadImageClassificationModel() {
   return await tf.loadLayersModel(
-    "file://./src/support/model/image-classification-model/model.json",
+    "file://./src/plugins/ai/model/image-classification-model/model.json",
   );
 }
 

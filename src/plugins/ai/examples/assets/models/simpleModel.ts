@@ -26,7 +26,7 @@ export async function createSimpleModel() {
   await model.fit(xs, ys, { epochs: 1000 });
 
   // Save the model
-  await model.save("file://./src/support/model/pretrained-model");
+  await model.save("file://./src/plugins/ai/model/pretrained-model");
 
   return model;
 }
@@ -34,7 +34,7 @@ export async function createSimpleModel() {
 // Load a pre-trained model
 export async function loadTrainedModel() {
   return await tf.loadLayersModel(
-    "file://./src/support/model/pretrained-model/model.json",
+    "file://./src/plugins/ai/model/pretrained-model/model.json",
   );
 }
 

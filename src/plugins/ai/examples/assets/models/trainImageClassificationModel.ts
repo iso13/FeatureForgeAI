@@ -12,6 +12,8 @@
 
 import * as tf from "@tensorflow/tfjs-node";
 import * as path from "path";
+import { getDirName } from "../../../../../core/utils/dirname.js";
+const __dirname = getDirName(import.meta.url);
 
 async function trainAndSaveImageClassificationModel() {
   // Create a sequential model with a basic convolutional structure
@@ -49,7 +51,7 @@ async function trainAndSaveImageClassificationModel() {
   // Save the model to the filesystem
   const modelPath = path.resolve(
     __dirname,
-    "../model/image-classification-model",
+    "../../../model/image-classification-model",
   );
   await model.save(`file://${modelPath}`);
 

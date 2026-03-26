@@ -12,8 +12,8 @@ artifacts/
 allure-report/
 .DS_Store
 
-src/support/model/pretrained-model/weights.bin
-src/support/model/pretrained-model/model.json
+src/plugins/ai/model/pretrained-model/weights.bin
+src/plugins/ai/model/pretrained-model/model.json
 src/support/apiKey
 
 .env
@@ -22,4 +22,6 @@ videos/
 
 **/*.js
 **/*.js.map
-**/*.d.ts
+**/*.d.tssrc/plugins/ai/model/image-classification-model/weights.bin
+src/plugins/ai/model/image-classification-model/model.json
+src/plugins/ai/images/

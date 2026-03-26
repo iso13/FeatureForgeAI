@@ -22,5 +22,5 @@ export default {
   formatOptions: { snippetInterface: 'async-await' },
   retry: process.env.RETRY || (isCI ? 1 : 0),
   parallel: process.env.PARALLEL || 1,
-  tags: process.env.TAGS || ''
+  tags: process.env.TAGS || 'not @wip and not @performanceTest'
 };

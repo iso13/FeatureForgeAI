@@ -31,7 +31,7 @@ Given(
       "loadAgenticTestData",
       async () => {
         const __dirname = getDirName(import.meta.url);
-        const basePath = path.join(__dirname, "../../data/agentic");
+        const basePath = path.join(__dirname, "../../plugins/ai/examples/data/agentic");
         this.investors =
           JSON.parse(
             fs.readFileSync(path.join(basePath, "investors.json"), "utf-8"),
