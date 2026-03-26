@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 
 const FEATURES_DIR = path.resolve(__dirname, "../../src/features");
 const STEPS_DIR = path.resolve(__dirname, "../../src/steps");
-const SUPPORT_DIR = path.resolve(__dirname, "../../src/support");
+const SUPPORT_DIR = path.resolve(__dirname, "../../core/support");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -138,8 +138,8 @@ class ContextAwareOpenAIGenerator {
    */
   private async extractWorldInterface(): Promise<string> {
     const worldPaths = [
-      path.join(SUPPORT_DIR, "world.ts"),
-      path.join(SUPPORT_DIR, "world.js"),
+      path.join(SUPPORT_DIR, "world.type.ts"),
+      path.join(SUPPORT_DIR, "world.type.js"),
       path.resolve("support/world.ts"),
     ];
 

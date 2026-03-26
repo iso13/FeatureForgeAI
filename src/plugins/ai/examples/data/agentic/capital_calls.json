@@ -1,0 +1,10 @@
+[
+  {
+    "callId": "CC-001",
+    "fundId": "FUND-123",
+    "amountRequested": 100000,
+    "dueDate": "2025-06-30",
+    "purpose": "Seed round deployment for startup portfolio",
+    "timestamp": "2025-05-15T19:00:00Z"
+  }
+]

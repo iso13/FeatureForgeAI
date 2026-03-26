@@ -1,0 +1,8 @@
+[
+  {
+    "fundId": "FUND-123",
+    "agreementName": "Growth Fund 2025",
+    "terms": "Investor commits capital upon capital call notice.",
+    "complianceTags": ["SEC-509", "AML-CERTIFIED"]
+  }
+]

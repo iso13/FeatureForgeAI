@@ -293,7 +293,7 @@ export async function scanProjectContext(projectRoot: string): Promise<ProjectCo
   // Scan world.ts for properties
   const worldPaths = [
     path.join(projectRoot, "src/core/support/world.ts"),
-    path.join(projectRoot, "src/support/world.ts"),
+    path.join(projectRoot, "src/core/support/world.type.ts"),
   ];
 
   for (const worldPath of worldPaths) {

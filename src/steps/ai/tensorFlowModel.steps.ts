@@ -18,7 +18,7 @@ import * as tf from "@tensorflow/tfjs";
 import {
   createSimpleModel,
   predictValue,
-} from "../../examples/assets/models/simpleModel";
+} from "../../plugins/ai/examples/assets/models/simpleModel";
 
 let model: tf.LayersModel; // Variable to store the TensorFlow model
 let prediction: number; // Variable to store the model's prediction result
