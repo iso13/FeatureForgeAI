@@ -1,9 +1,7 @@
 import isCI from 'is-ci';
 
 export default {
-  // Load tsx first — this makes Node able to run .ts files
   import: [
-    'tsx',
     'src/core/support/tracer.ts',
     'src/core/support/world.ts',
     'src/core/support/hooks.ts',
