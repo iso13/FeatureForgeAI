@@ -44,7 +44,13 @@
     "flows:list": "tsx src/generators/scanner/cli.ts flows",
     "generate:scanner": "tsx src/generators/scanner/cli.ts generate --all",
     "generate:hybrid": "tsx src/generators/scanner/hybrid-cli.ts --dir ./docs/api",
-    "scan:clear-cache": "tsx src/generators/scanner/cli.ts clear-cache"
+    "scan:clear-cache": "tsx src/generators/scanner/cli.ts clear-cache",
+    "otel:up": "docker compose up -d",
+    "otel:down": "docker compose down",
+    "otel:restart": "docker compose restart",
+    "otel:status": "docker ps --format \"table {{.Names}}\\t{{.Status}}\\t{{.Ports}}\" | grep -E \"NAME|jaeger|prometheus|grafana|otel|weaviate\"",
+    "otel:open": "open http://localhost:16686 && open http://localhost:9090 && open http://localhost:3000",
+    "otel:start": "npm run otel:up && npm run wait:prometheus && npm run otel:open"
   },
   "engines": {
     "node": ">=22.0.0"
