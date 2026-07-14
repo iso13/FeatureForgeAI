@@ -1,4 +1,4 @@
-@view3DModel
+@view3DModel @smoke
 Feature: View 3D Model
   As an Engineer
   I want to be able to view and interact with a 3D model on a web AR viewer
