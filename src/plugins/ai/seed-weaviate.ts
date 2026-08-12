@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: BSL-1.1
 
 import path from "path";
+import { fileURLToPath } from "url";
 import fs from "fs";
 import dotenv from "dotenv";
 import {
@@ -19,18 +20,21 @@ import {
   importDocuments,
 } from "./weaviateClient";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load environment variables
 dotenv.config();
 
 async function seedWeaviate() {
   try {
     console.log("Connecting to Weaviate...");
-    getWeaviateClient(); // Ensure client is initialized
+    await getWeaviateClient(); // Ensure client is initialized
 
     console.log("Creating schema if not exists...");
     await createSchemaIfNeeded();
 
-    const filePath = path.resolve(__dirname, "../data/internal_docs.json");
+    const filePath = path.resolve(__dirname, "examples/data/internal_docs.json");
     if (!fs.existsSync(filePath)) {
       throw new Error(`Missing internal_docs.json at ${filePath}`);
     }

@@ -11,38 +11,39 @@
 // SPDX-License-Identifier: BSL-1.1
 
 // utils/weaviateClient.ts
+// MIGRATED: weaviate-ts-client (v2, deprecated) -> weaviate-client (v3)
 
-import weaviate from "weaviate-ts-client";
-import type { WeaviateClient } from "weaviate-ts-client";
+import weaviate, { type WeaviateClient } from "weaviate-client";
 import type { Span } from "@opentelemetry/api";
 import { withSpan } from "../telemetry/traceHelper";
 import type { DocumentInput } from "../../core/utils/injectIdsIntoDocs";
 
 process.env.OPENAI_APIKEY ??= process.env.OPENAI_API_KEY;
 
-let client: WeaviateClient;
+// v3 connection is async, so we cache a Promise rather than the client itself.
+let clientPromise: Promise<WeaviateClient> | undefined;
 
-export function getWeaviateClient(): WeaviateClient {
-  if (!client) {
-    client = weaviate.client({
-      scheme: "http",
-      host: "localhost:8080",
+export function getWeaviateClient(): Promise<WeaviateClient> {
+  if (!clientPromise) {
+    clientPromise = weaviate.connectToLocal({
+      host: "localhost",
+      port: 8080,
     });
   }
-  return client;
+  return clientPromise;
 }
 
 async function waitForWeaviateReady(
   timeoutMs = 15000,
   intervalMs = 500,
 ): Promise<void> {
-  const client = getWeaviateClient();
+  const client = await getWeaviateClient();
   const start = Date.now();
 
   while (Date.now() - start < timeoutMs) {
     try {
-      const status = await client.misc.readyChecker().do();
-      if (status.isReady) return;
+      const isReady = await client.isReady();
+      if (isReady) return;
     } catch {
       // ignore errors and keep polling
     }
@@ -53,47 +54,38 @@ async function waitForWeaviateReady(
 }
 
 export async function createSchemaIfNeeded(parentSpan?: Span): Promise<void> {
-  const client = getWeaviateClient();
+  const client = await getWeaviateClient();
 
   await withSpan(
     "createSchemaIfNeeded",
     async (span) => {
       await waitForWeaviateReady(); // ✅ ensure readiness before schema ops
 
-      const existingSchema = await client.schema.getter().do();
-      const schemaExists = existingSchema.classes?.some(
-        (c) => c.class === "Document",
-      );
+      const schemaExists = await client.collections.exists("Document");
       span.setAttribute("schemaExists", schemaExists ?? false);
 
       if (!schemaExists) {
-        await client.schema
-          .classCreator()
-          .withClass({
-            class: "Document",
-            description: "Internal knowledge base documents",
-            vectorizer: "text2vec-openai",
-            moduleConfig: {
-              "text2vec-openai": {
-                model: "ada",
-                modelVersion: "002",
-                type: "text",
-              },
+        await client.collections.create({
+          name: "Document",
+          description: "Internal knowledge base documents",
+          vectorizers: weaviate.configure.vectors.text2VecOpenAI({
+            name: "default",
+            model: "ada",
+            modelVersion: "002",
+          }),
+          properties: [
+            {
+              name: "docId",
+              dataType: "text",
+              skipVectorization: true,
+              indexFilterable: true,
+              description: "A unique identifier for this document",
             },
-            properties: [
-              {
-                name: "docId",
-                dataType: ["text"],
-                moduleConfig: { "text2vec-openai": { skip: true } },
-                indexInverted: true,
-                description: "A unique identifier for this document",
-              },
-              { name: "title", dataType: ["text"] },
-              { name: "body", dataType: ["text"] },
-              { name: "tags", dataType: ["text[]"] },
-            ],
-          })
-          .do();
+            { name: "title", dataType: "text" },
+            { name: "body", dataType: "text" },
+            { name: "tags", dataType: "text[]" },
+          ],
+        });
       }
     },
     {},
@@ -105,22 +97,19 @@ export async function importDocuments(
   docs: DocumentInput[],
   parentSpan?: Span,
 ): Promise<void> {
-  const client = getWeaviateClient();
+  const client = await getWeaviateClient();
+  const collection = client.collections.get("Document");
 
   await withSpan(
     "importDocuments",
     async (span) => {
       for (const doc of docs) {
-        await client.data
-          .creator()
-          .withClassName("Document")
-          .withProperties({
-            docId: doc.docId,
-            title: doc.title,
-            body: doc.body,
-            tags: doc.tags,
-          })
-          .do();
+        await collection.data.insert({
+          docId: doc.docId ?? "",
+          title: doc.title,
+          body: doc.body,
+          tags: doc.tags ?? [],
+        });
       }
 
       span.setAttribute("documentCount", docs.length);
@@ -135,22 +124,20 @@ export async function querySimilarDocs(
   topK = 3,
   parentSpan?: Span,
 ): Promise<any> {
-  const client = getWeaviateClient();
+  const client = await getWeaviateClient();
+  const collection = client.collections.get("Document");
 
   return await withSpan(
     "querySimilarDocs",
     async (span) => {
-      const result = await client.graphql
-        .get()
-        .withClassName("Document")
-        .withFields("docId title body tags _additional {certainty}")
-        .withNearText({ concepts: [query] })
-        .withLimit(topK)
-        .do();
+      const result = await collection.query.nearText([query], {
+        limit: topK,
+        returnMetadata: ["certainty"],
+      });
 
       span.setAttribute("query", query);
       span.setAttribute("topK", topK);
-      span.setAttribute("matchCount", result?.data?.Get?.Document?.length || 0);
+      span.setAttribute("matchCount", result?.objects?.length || 0);
 
       return result;
     },
