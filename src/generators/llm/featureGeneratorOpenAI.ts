@@ -23,8 +23,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const FEATURES_DIR = path.resolve(__dirname, "../../src/features");
-const STEPS_DIR = path.resolve(__dirname, "../../src/steps");
+const FEATURES_DIR = path.resolve(__dirname, "../../features");
+const STEPS_DIR = path.resolve(__dirname, "../../steps");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
