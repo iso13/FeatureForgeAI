@@ -16,7 +16,7 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import { FsInstrumentation } from "@opentelemetry/instrumentation-fs";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -41,7 +41,7 @@ async function initTelemetry() {
       "http://localhost:4318/v1/traces",
   });
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: "cucumber-playwright",
     [ATTR_SERVICE_VERSION]: "1.0.0",
     [ATTR_DEPLOYMENT_ENVIRONMENT_NAME]: process.env.ENV || "local",

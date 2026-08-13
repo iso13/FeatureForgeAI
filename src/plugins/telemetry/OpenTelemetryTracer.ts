@@ -13,7 +13,7 @@
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
+import { resourceFromAttributes } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 
@@ -27,7 +27,7 @@ const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
     url: otlpEndpoint,
   }),
-  resource: new Resource({
+  resource: resourceFromAttributes({
     [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
   }),
   instrumentations: [getNodeAutoInstrumentations()],
