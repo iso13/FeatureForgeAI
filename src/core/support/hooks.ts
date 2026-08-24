@@ -9,8 +9,6 @@
  */
 
 // SPDX-License-Identifier: BSL-1.1
-
-// SPDX-License-Identifier: BSL-1.1
 import {
   Before,
   After,
@@ -26,6 +24,9 @@ import * as tracerModule from "./tracer";
 import * as path from "path";
 import * as fs from "fs";
 import { format } from "date-fns";
+import { classifyFailure } from '../intelligence/failureClassifier';
+import { validateAllLayers, attachNetworkCapture } from '../intelligence/layerValidator';
+import { generateDeveloperBrief, generateBriefHTML } from '../intelligence/developerBrief';
 
 setDefaultTimeout(10_000);
 
@@ -100,6 +101,7 @@ Before(async function (this: CustomWorld, scenario: ITestCaseHookParameter) {
 });
 
 BeforeStep(function (this: CustomWorld, step) {
+  this.currentStepText = step.pickleStep.text;
   if (isVerbose) console.log(`Starting step: ${step.pickleStep.text}`);
   try {
     if (isTracingEnabled && tracer) {
@@ -115,16 +117,64 @@ BeforeStep(function (this: CustomWorld, step) {
         },
       );
     }
+
+    // Attach network capture if browser is active
+    if (this.page) {
+      this.networkRequests = attachNetworkCapture(this.page);
+    }
   } catch (err) {
     console.warn("Failed to create step span:", err);
   }
 });
 
-AfterStep(function (this: CustomWorld) {
+AfterStep(async function (this: CustomWorld, step) {
   try {
     if (isTracingEnabled && this.stepSpan) this.stepSpan.end();
   } catch (err) {
     console.warn("Failed to end step span:", err);
+  }
+
+  // Only classify failures
+  const isFailed = step.result?.status === Status.FAILED;
+  if (!isFailed) return;
+
+  try {
+    const errorMessage = step.result?.message || 'Unknown error';
+    const stackTrace = step.result?.message || undefined;
+    const stepText = this.currentStepText || step.pickleStep.text;
+
+    // Classify the failure layer
+    const classification = await classifyFailure(
+      stepText,
+      this.scenarioName,
+      this.featureName,
+      errorMessage,
+      stackTrace,
+    );
+
+    // Validate all layers
+    const validationReport = await validateAllLayers(
+      {
+        stepText,
+        scenarioName: this.scenarioName,
+        featureName: this.featureName,
+        page: this.page,
+        networkRequests: this.networkRequests || [],
+        parentSpan: this.stepSpan,
+      },
+      errorMessage,
+    );
+
+    // Generate developer brief
+    const brief = await generateDeveloperBrief(classification, validationReport);
+    this.failureReport = brief;
+
+    // Attach HTML brief to Cucumber report
+    const html = generateBriefHTML(brief);
+    this.attach(html, 'text/html');
+
+  } catch (err) {
+    console.warn("Step Intelligence Layer error:", err);
   }
 });
 

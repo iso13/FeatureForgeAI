@@ -28,6 +28,8 @@ import { DefaultPage } from "../pages/defaultPage";
 
 import { MockAccessAPI } from "../mocks/mock-access-api";
 import type { AccessAPI } from "../types/access-api";
+import type { DeveloperBrief } from '../intelligence/developerBrief';
+import type { NetworkRequest } from '../intelligence/layerValidator';
 
 export interface MLModel {
   predict: (input: any) => number;
@@ -46,6 +48,9 @@ export interface CustomWorld extends World {
   pickle: any;
   a11yResults?: any;
   lastSummaryOutput?: string;
+  failureReport?: DeveloperBrief;
+  networkRequests?: NetworkRequest[];
+  currentStepText?: string;
 
   email?: string;
   resetLink?: string;
@@ -103,6 +108,9 @@ class PlaywrightWorld extends World implements CustomWorld {
   pickle: any;
   a11yResults?: any;
   lastSummaryOutput?: string;
+  failureReport?: DeveloperBrief;
+  networkRequests?: NetworkRequest[] = [];
+  currentStepText?: string = '';
 
   email: string = "";
   resetLink: string = "";

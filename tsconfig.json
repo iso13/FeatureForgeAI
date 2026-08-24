@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["DOM", "ES2022"],
+    "lib": [
+      "DOM",
+      "ES2022"
+    ],
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -17,45 +20,61 @@
     "declaration": false,
     "allowJs": false,
     "moduleDetection": "force",
-
     // Type filtering to avoid unwanted ambient modules
     "types": [],
-
     // Helpful enhancements
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "verbatimModuleSyntax": true,
-
     // Debugging / dev hints
     "preserveConstEnums": true,
     "removeComments": false,
-
     // Type checking enhancements
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "useUnknownInCatchVariables": false,
-
     // Path aliases
-    "baseUrl": ".",
     "paths": {
-      "@/*":           ["src/*"],
-      "@core/*":       ["src/core/*"],
-      "@generators/*": ["src/generators/*"],
-      "@plugins/*":    ["src/plugins/*"],
-      "@tools/*":      ["src/tools/*"],
-      "@examples/*":   ["src/examples/*"],
-      "@support/*":    ["src/core/support/*"],
-      "@steps/*":      ["src/core/steps/*"],
-      "@pages/*":      ["src/core/pages/*"],
-      "@scanner/*":    ["src/generators/scanner/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@core/*": [
+        "./src/core/*"
+      ],
+      "@generators/*": [
+        "./src/generators/*"
+      ],
+      "@plugins/*": [
+        "./src/plugins/*"
+      ],
+      "@tools/*": [
+        "./src/tools/*"
+      ],
+      "@examples/*": [
+        "./src/examples/*"
+      ],
+      "@support/*": [
+        "./src/core/support/*"
+      ],
+      "@steps/*": [
+        "./src/core/steps/*"
+      ],
+      "@pages/*": [
+        "./src/core/pages/*"
+      ],
+      "@scanner/*": [
+        "./src/generators/scanner/*"
+      ]
     },
-
     // Include custom type declarations
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
   },
   "include": [
     "src/**/*.ts",
