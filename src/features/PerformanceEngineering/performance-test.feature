@@ -1,4 +1,4 @@
-@performance @no-browser
+@performance @no-browser @wip
 Feature: Performance Test
   As an Engineer
   I want to be able run performnace test
